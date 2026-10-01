@@ -18,7 +18,6 @@
         .clickable-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
         .clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); border-color: rgba(94, 114, 145, 0.5); }
         
-        /* Ocultar scrollbar pero mantener funcionalidad */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
@@ -37,8 +36,9 @@
             <p class="text-slate-400 text-sm mt-1">Lean Manufacturing & Sincronización ClickUp</p>
         </div>
         <div class="flex flex-col items-end gap-2">
-            <div id="gw-badge" onclick="openModal('Gateways', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway'))" class="hidden cursor-pointer bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-500/20 transition">
-                <i class="fa-solid fa-router mr-2"></i><span id="gw-count">0</span> Gateways detectados
+            <!-- Modal para Gateways Filtrado por esta semana -->
+            <div id="gw-badge" onclick="openModal('Gateways (Esta Semana)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && t.esEstaSemana))" class="hidden cursor-pointer bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-500/20 transition">
+                <i class="fa-solid fa-router mr-2"></i><span id="gw-count">0</span> Gateways en semana
             </div>
             <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-xs">
                 <span class="text-slate-400">Última actualización:</span>
@@ -51,17 +51,17 @@
     <main class="space-y-6 max-w-[1400px] mx-auto">
         <!-- KPIs -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <!-- Semana -->
-            <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks)" class="glass-panel rounded-2xl p-6 clickable-card relative group">
+            <!-- Semana (SOLO ESTA SEMANA) -->
+            <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks.filter(t => t.esEstaSemana))" class="glass-panel rounded-2xl p-6 clickable-card relative group">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium mb-1">A Fabricar (Semana)</p>
+                        <p class="text-slate-400 text-sm font-medium mb-1">A Fabricar (Esta Semana)</p>
                         <h2 id="kpi-semana" class="text-4xl font-extrabold text-white">0</h2>
                     </div>
                     <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl group-hover:bg-blue-500/20 transition"><i class="fa-solid fa-calendar-week text-xl"></i></div>
                 </div>
                 <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
-                    <span>Total dispositivos programados</span>
+                    <span>Limitado a tickets con fecha ≤ Domingo</span>
                     <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-[10px]">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
@@ -86,7 +86,7 @@
                 </div>
             </div>
 
-            <!-- En Curso -->
+            <!-- En Curso (Aplica en general) -->
             <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO'))" class="glass-panel rounded-2xl p-6 clickable-card relative group">
                 <div class="flex justify-between items-start">
                     <div>
@@ -96,7 +96,7 @@
                     <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl group-hover:bg-emerald-500/20 transition"><i class="fa-solid fa-gears text-xl"></i></div>
                 </div>
                 <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
-                    <span>En proceso de ensamblaje</span>
+                    <span>En proceso de ensamblaje actualmente</span>
                     <span class="text-emerald-400 opacity-0 group-hover:opacity-100 transition text-[10px]">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
@@ -104,33 +104,37 @@
 
         <!-- Modelos -->
         <section>
-            <h2 class="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                <i class="fa-solid fa-microchip"></i> Desglose por Modelo
-            </h2>
+            <div class="flex items-center gap-3 mb-3">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-microchip"></i> Desglose por Modelo
+                </h2>
+                <span class="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">(Estrictamente de esta semana)</span>
+            </div>
+            
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Ixotrack -->
-                <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack'))" class="glass-panel border-emerald-500/20 rounded-xl p-4 clickable-card group">
+                <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && t.esEstaSemana))" class="glass-panel border-emerald-500/20 rounded-xl p-4 clickable-card group">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-emerald-500"></div><h3 class="text-sm font-semibold text-slate-300">Ixotrack</h3></div>
                     </div>
                     <div class="flex items-baseline gap-2"><span id="model-ixotrack" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
                 <!-- Ixotrack pro -->
-                <div onclick="openModal('Ixotrack pro', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro'))" class="glass-panel border-sky-400/20 rounded-xl p-4 clickable-card group">
+                <div onclick="openModal('Ixotrack pro', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && t.esEstaSemana))" class="glass-panel border-sky-400/20 rounded-xl p-4 clickable-card group">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-sky-400"></div><h3 class="text-sm font-semibold text-slate-300">Ixotrack pro</h3></div>
                     </div>
                     <div class="flex items-baseline gap-2"><span id="model-ixotrack-pro" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
                 <!-- IxotrackproM10 -->
-                <div onclick="openModal('IxotrackproM10', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10'))" class="glass-panel border-blue-600/20 rounded-xl p-4 clickable-card group">
+                <div onclick="openModal('IxotrackproM10', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && t.esEstaSemana))" class="glass-panel border-blue-600/20 rounded-xl p-4 clickable-card group">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-blue-600"></div><h3 class="text-sm font-semibold text-slate-300">IxotrackproM10</h3></div>
                     </div>
                     <div class="flex items-baseline gap-2"><span id="model-ixotrack-m10" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
                 <!-- IxotrackproM10LR -->
-                <div onclick="openModal('IxotrackproM10LR', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR'))" class="glass-panel border-purple-500/20 rounded-xl p-4 clickable-card group">
+                <div onclick="openModal('IxotrackproM10LR', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && t.esEstaSemana))" class="glass-panel border-purple-500/20 rounded-xl p-4 clickable-card group">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-purple-500"></div><h3 class="text-sm font-semibold text-slate-300">IxotrackproM10LR</h3></div>
                     </div>
@@ -143,7 +147,7 @@
         <section class="glass-panel rounded-2xl overflow-hidden flex flex-col h-[500px]">
             <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
                 <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-slate-400"></i> Tickets Activos (Semana)
+                    <i class="fa-solid fa-list-check text-slate-400"></i> Todos los Tickets Activos
                 </h2>
                 <span id="task-count-badge" class="px-3 py-1 bg-slate-800 text-slate-300 text-xs rounded-full border border-slate-700">0 tickets</span>
             </div>
@@ -240,11 +244,9 @@
             if (!taskName) return { nombre: 'Otro', color: 'slate' };
             const lowerName = taskName.toLowerCase();
             
-            // Detección de Gateways
             if (lowerName.includes('gateway') || lowerName.includes('gw') || lowerName.match(/\bgw\b/)) {
                 return { nombre: 'Gateway', color: 'orange' };
             }
-            // Emojis / Modelos
             if (taskName.includes('🟩')) return { nombre: 'Ixotrack', color: 'emerald' };
             if (taskName.includes('🟪')) return { nombre: 'IxotrackproM10LR', color: 'purple' };
             if (taskName.includes('🟦')) {
@@ -256,10 +258,26 @@
 
         // ¿Es Hoy?
         function isToday(timestamp) {
-            if (!timestamp) return false;
+            if (!timestamp || timestamp === 9999999999999) return false;
             const date = new Date(parseInt(timestamp, 10));
             const today = new Date();
             return date.toDateString() === today.toDateString();
+        }
+
+        // NUEVA FUNCIÓN: Comprobar si la fecha límite cae en esta semana (Lunes a Domingo) o si está atrasado
+        function isThisWeekOrOverdue(timestamp) {
+            if (!timestamp || timestamp === 9999999999999) return false; // Sin fecha límite = NO computa para "Esta Semana"
+            
+            const date = new Date(parseInt(timestamp, 10));
+            const today = new Date();
+            
+            // Calcular el final del domingo de esta semana actual
+            const day = today.getDay() || 7; // Convertir domingo (0) a 7
+            const sunday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + (7 - day));
+            sunday.setHours(23, 59, 59, 999);
+            
+            // Si la fecha del ticket es igual o anterior a este domingo a última hora, entra en la semana.
+            return date.getTime() <= sunday.getTime();
         }
 
         // Normalizar Tareas
@@ -268,7 +286,10 @@
                 const unidades = parseDispositivos(task);
                 const modeloInfo = parseModelo(task.name);
                 const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
+                
                 const esHoy = isToday(task.due_date);
+                const esEstaSemana = isThisWeekOrOverdue(task.due_date); // Aplicamos el nuevo filtro
+                
                 const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
                 
                 return {
@@ -279,6 +300,7 @@
                     estado: estado,
                     estadoColor: task.status ? task.status.color : '#64748b',
                     esHoy: esHoy,
+                    esEstaSemana: esEstaSemana,
                     timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
                     prioridadNum: prioridad
                 };
@@ -288,7 +310,6 @@
         // Conexión real a la API de Vercel
         async function fetchClickUpData() {
             try {
-                // LLAMADA A TU BACKEND EN VERCEL
                 const response = await fetch('/api/clickup');
                 
                 if (!response.ok) throw new Error('Error al conectar con ClickUp');
@@ -315,6 +336,8 @@
             let futureCounts = {};
             
             window.allTasks.forEach(task => {
+                if (!task.esEstaSemana) return; // Solo recomendar en base al trabajo programado para esta semana
+                
                 const model = task.modeloInfo.nombre;
                 if (model === 'Otro' || model === 'Gateway') return;
                 
@@ -327,8 +350,8 @@
                 if (futureCounts[model] && futureCounts[model] > 0) {
                     const total = todayTotal + futureCounts[model];
                     suggestions.push(`
-                        <li>Tienes <strong>${todayTotal}</strong> ${model} caducando hoy y <strong>${futureCounts[model]}</strong> programados para el resto de la semana. <br>
-                        👉 <span class="text-amber-300 font-semibold">Sugerencia: Ensambla un lote único de ${total} unidades hoy</span> para evitar cambios de configuración (setup) de los puestos.</li>
+                        <li>Tienes <strong>${todayTotal}</strong> ${model} para hoy y <strong>${futureCounts[model]}</strong> para el resto de la semana. <br>
+                        👉 <span class="text-amber-300 font-semibold">Sugerencia: Ensambla un lote único de ${total} unidades hoy</span> para evitar cambios de configuración (setup) en las mesas.</li>
                     `);
                 }
             }
@@ -344,7 +367,7 @@
             return suggestions;
         }
 
-        // Actualizar UI
+        // Actualizar UI - CON LA LÓGICA DE TIEMPO CORREGIDA
         function updateDashboard() {
             let totalSemana = 0;
             let totalHoy = 0;
@@ -353,14 +376,24 @@
             const modelosCount = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0 };
 
             window.allTasks.forEach(t => {
-                totalSemana += t.unidades;
-                if (t.esHoy) totalHoy += t.unidades;
+                // "En Curso" y "Hoy" son hechos irrefutables
                 if (t.estado === 'EN CURSO') totalEnCurso += t.unidades;
+                if (t.esHoy) totalHoy += t.unidades;
                 
-                if (t.modeloInfo.nombre === 'Gateway') totalGW += t.unidades;
-                if (modelosCount[t.modeloInfo.nombre] !== undefined) modelosCount[t.modeloInfo.nombre] += t.unidades;
+                // === FILTRO ESTRICTO: SOLO SUMAMOS SI LA FECHA ES DE ESTA SEMANA ===
+                if (t.esEstaSemana) {
+                    totalSemana += t.unidades; // Suma general de la semana
+                    
+                    if (modelosCount[t.modeloInfo.nombre] !== undefined) {
+                        modelosCount[t.modeloInfo.nombre] += t.unidades; // Suma a su caja de modelo
+                    }
+                    if (t.modeloInfo.nombre === 'Gateway') {
+                        totalGW += t.unidades; // Suma a Gateways programados para esta semana
+                    }
+                }
             });
 
+            // Pintar en pantalla
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
             document.getElementById('kpi-encurso').innerText = totalEnCurso;
@@ -377,7 +410,7 @@
                 document.getElementById('gw-badge').classList.add('hidden');
             }
 
-            document.getElementById('task-count-badge').innerText = `${window.allTasks.length} tickets`;
+            document.getElementById('task-count-badge').innerText = `${window.allTasks.length} tickets en total`;
             
             checkBatchingRecommendations();
             renderMainTable();
@@ -420,7 +453,7 @@
             });
         }
 
-        // Ordenar Tabla (Sencillo)
+        // Ordenar Tabla
         function sortTable(col) {
             currentSort.dir = (currentSort.column === col && currentSort.dir === 'asc') ? 'desc' : 'asc';
             currentSort.column = col;
@@ -444,7 +477,6 @@
         function openModal(title, tasks, showRecommendations = false) {
             document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-layer-group text-emerald-400"></i> Desglose: ${title}`;
             
-            // Sugerencias
             const recBox = document.getElementById('modal-recommendation-box');
             if (showRecommendations) {
                 const sugerencias = checkBatchingRecommendations();
@@ -458,10 +490,13 @@
                 recBox.classList.add('hidden');
             }
 
-            // Llenar tabla
             const tbody = document.getElementById('modal-table-body');
             let tUnidades = 0;
             tbody.innerHTML = '';
+            
+            if (tasks.length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">No hay dispositivos de este tipo programados para esta semana.</td></tr>`;
+            }
             
             tasks.forEach(t => {
                 tUnidades += t.unidades;
@@ -478,7 +513,6 @@
             document.getElementById('modal-total-tickets').innerText = `${tasks.length} tickets listados`;
             document.getElementById('modal-total-units').innerText = tUnidades;
 
-            // Mostrar animación
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             setTimeout(() => {
@@ -498,7 +532,7 @@
             }, 300);
         }
 
-        // Cargar al inicio y refrescar cada 1 minuto
+        // Iniciar
         fetchClickUpData();
         setInterval(fetchClickUpData, 60000);
     </script>
