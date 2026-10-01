@@ -3,379 +3,504 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Producción - Ixorigue</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Control de Producción Inteligente - Ixorigue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            dark: '#0f172a',
-                            card: '#1e293b',
-                            border: '#334155'
-                        }
-                    }
-                }
-            }
+            theme: { extend: { colors: { slate: { 850: '#151e2e', 950: '#0a0f18' } } } }
         }
     </script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .animate-pulse-slow {
-            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .row-hover:hover { background: rgba(30, 41, 59, 0.8); }
+        .clickable-card { transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+        .clickable-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); border-color: rgba(94, 114, 145, 0.5); }
+        
+        /* Ocultar scrollbar pero mantener funcionalidad */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased p-4 md:p-8">
+<body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
-    <!-- Header / Navbar -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-slate-800 gap-4">
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-6 border-b border-slate-800 gap-4">
         <div>
             <div class="flex items-center gap-3">
-                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Panel de Control de Producción</h1>
+                <span class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse"></span>
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-white">Panel de Producción</h1>
             </div>
-            <p class="text-slate-400 text-sm mt-1">Sincronización en tiempo real con ClickUp</p>
+            <p class="text-slate-400 text-sm mt-1">Lean Manufacturing & Sincronización ClickUp</p>
         </div>
-        
-        <div class="flex items-center gap-4 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-xs md:text-sm">
-            <span class="text-slate-400">Última actualización:</span>
-            <span id="last-update" class="font-mono text-emerald-400 font-medium">Cargando...</span>
-            <button onclick="fetchClickUpData()" class="ml-2 p-1.5 text-slate-400 hover:text-white transition-colors" title="Actualizar ahora">
-                <i class="fa-solid fa-rotate-right"></i>
-            </button>
+        <div class="flex flex-col items-end gap-2">
+            <div id="gw-badge" onclick="openModal('Gateways', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway'))" class="hidden cursor-pointer bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-500/20 transition">
+                <i class="fa-solid fa-router mr-2"></i><span id="gw-count">0</span> Gateways detectados
+            </div>
+            <div class="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-xs">
+                <span class="text-slate-400">Última actualización:</span>
+                <span id="last-update" class="font-mono text-emerald-400 font-medium">Cargando...</span>
+                <button onclick="fetchClickUpData()" class="ml-2 text-slate-400 hover:text-white transition-colors" title="Actualizar"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="space-y-8 max-w-7xl mx-auto">
-
-        <!-- Top Metrics Cards (KPIs) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- KPI 1: Semana -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+    <main class="space-y-6 max-w-[1400px] mx-auto">
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <!-- Semana -->
+            <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks)" class="glass-panel rounded-2xl p-6 clickable-card relative group">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium">A Fabricar (Esta Semana)</p>
-                        <h2 id="kpi-semana" class="text-4xl font-extrabold text-white mt-2">0</h2>
+                        <p class="text-slate-400 text-sm font-medium mb-1">A Fabricar (Semana)</p>
+                        <h2 id="kpi-semana" class="text-4xl font-extrabold text-white">0</h2>
                     </div>
-                    <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
-                        <i class="fa-solid fa-calendar-week text-xl"></i>
-                    </div>
+                    <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl group-hover:bg-blue-500/20 transition"><i class="fa-solid fa-calendar-week text-xl"></i></div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500">
-                    Total dispositivos programados
+                <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
+                    <span>Total dispositivos programados</span>
+                    <span class="text-blue-400 opacity-0 group-hover:opacity-100 transition text-[10px]">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
 
-            <!-- KPI 2: Hoy -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+            <!-- Hoy -->
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.esHoy), true)" class="glass-panel rounded-2xl p-6 clickable-card relative group border-amber-500/20">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium">A Fabricar (Hoy)</p>
-                        <h2 id="kpi-hoy" class="text-4xl font-extrabold text-amber-400 mt-2">0</h2>
+                        <p class="text-slate-400 text-sm font-medium mb-1 flex items-center gap-2">
+                            A Fabricar (Hoy)
+                            <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">
+                                <i class="fa-solid fa-lightbulb"></i> Sugerencia
+                            </span>
+                        </p>
+                        <h2 id="kpi-hoy" class="text-4xl font-extrabold text-amber-400">0</h2>
                     </div>
-                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-                        <i class="fa-solid fa-clock text-xl"></i>
-                    </div>
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl group-hover:bg-amber-500/20 transition"><i class="fa-solid fa-clock text-xl"></i></div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500">
-                    Con fecha límite para el día de hoy
+                <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
+                    <span>Con fecha límite de hoy</span>
+                    <span class="text-amber-400 opacity-0 group-hover:opacity-100 transition text-[10px]">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
 
-            <!-- KPI 3: En Curso -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+            <!-- En Curso -->
+            <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO'))" class="glass-panel rounded-2xl p-6 clickable-card relative group">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-slate-400 text-sm font-medium">Dispositivos En Curso</p>
-                        <h2 id="kpi-encurso" class="text-4xl font-extrabold text-emerald-400 mt-2">0</h2>
+                        <p class="text-slate-400 text-sm font-medium mb-1">Dispositivos En Curso</p>
+                        <h2 id="kpi-encurso" class="text-4xl font-extrabold text-emerald-400">0</h2>
                     </div>
-                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
-                        <i class="fa-solid fa-gears text-xl"></i>
-                    </div>
+                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl group-hover:bg-emerald-500/20 transition"><i class="fa-solid fa-gears text-xl"></i></div>
                 </div>
-                <div class="mt-4 text-xs text-slate-500">
-                    Actualmente en proceso de ensamblaje/revisión
+                <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
+                    <span>En proceso de ensamblaje</span>
+                    <span class="text-emerald-400 opacity-0 group-hover:opacity-100 transition text-[10px]">Ver detalle <i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
         </div>
 
-        <!-- Models Breakdown Grid -->
+        <!-- Modelos -->
         <section>
-            <h2 class="text-lg font-semibold text-slate-300 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-microchip text-slate-400"></i> Desglose por Modelo
+            <h2 class="text-sm font-semibold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-microchip"></i> Desglose por Modelo
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- Ixotrack (Verde) -->
-                <div class="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-5">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-4 h-4 rounded-md bg-emerald-500"></div>
-                        <h3 class="font-semibold text-slate-200">Ixotrack</h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Ixotrack -->
+                <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack'))" class="glass-panel border-emerald-500/20 rounded-xl p-4 clickable-card group">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-emerald-500"></div><h3 class="text-sm font-semibold text-slate-300">Ixotrack</h3></div>
                     </div>
-                    <div class="flex justify-between items-baseline mt-2">
-                        <span id="model-ixotrack" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">unidades</span>
-                    </div>
+                    <div class="flex items-baseline gap-2"><span id="model-ixotrack" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
-
-                <!-- Ixotrack pro (Azul Claro) -->
-                <div class="bg-slate-900/60 border border-sky-400/30 rounded-xl p-5">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-4 h-4 rounded-md bg-sky-400"></div>
-                        <h3 class="font-semibold text-slate-200">Ixotrack pro</h3>
+                <!-- Ixotrack pro -->
+                <div onclick="openModal('Ixotrack pro', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro'))" class="glass-panel border-sky-400/20 rounded-xl p-4 clickable-card group">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-sky-400"></div><h3 class="text-sm font-semibold text-slate-300">Ixotrack pro</h3></div>
                     </div>
-                    <div class="flex justify-between items-baseline mt-2">
-                        <span id="model-ixotrack-pro" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">unidades</span>
-                    </div>
+                    <div class="flex items-baseline gap-2"><span id="model-ixotrack-pro" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
-
-                <!-- IxotrackproM10 (Azul Oscuro) -->
-                <div class="bg-slate-900/60 border border-blue-600/30 rounded-xl p-5">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-4 h-4 rounded-md bg-blue-600"></div>
-                        <h3 class="font-semibold text-slate-200">IxotrackproM10</h3>
+                <!-- IxotrackproM10 -->
+                <div onclick="openModal('IxotrackproM10', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10'))" class="glass-panel border-blue-600/20 rounded-xl p-4 clickable-card group">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-blue-600"></div><h3 class="text-sm font-semibold text-slate-300">IxotrackproM10</h3></div>
                     </div>
-                    <div class="flex justify-between items-baseline mt-2">
-                        <span id="model-ixotrack-m10" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">unidades</span>
-                    </div>
+                    <div class="flex items-baseline gap-2"><span id="model-ixotrack-m10" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
-
-                <!-- IxotrackproM10LR (Morado) -->
-                <div class="bg-slate-900/60 border border-purple-500/30 rounded-xl p-5">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-4 h-4 rounded-md bg-purple-500"></div>
-                        <h3 class="font-semibold text-slate-200">IxotrackproM10LR</h3>
+                <!-- IxotrackproM10LR -->
+                <div onclick="openModal('IxotrackproM10LR', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR'))" class="glass-panel border-purple-500/20 rounded-xl p-4 clickable-card group">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2"><div class="w-3 h-3 rounded bg-purple-500"></div><h3 class="text-sm font-semibold text-slate-300">IxotrackproM10LR</h3></div>
                     </div>
-                    <div class="flex justify-between items-baseline mt-2">
-                        <span id="model-ixotrack-lr" class="text-3xl font-bold text-white">0</span>
-                        <span class="text-xs text-slate-400">unidades</span>
-                    </div>
+                    <div class="flex items-baseline gap-2"><span id="model-ixotrack-lr" class="text-2xl font-bold text-white">0</span><span class="text-xs text-slate-500">uds</span></div>
                 </div>
-
             </div>
         </section>
 
-        <!-- Task List Section -->
-        <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-slate-400"></i> Tickets Activos de la Semana
+        <!-- Tabla Principal -->
+        <section class="glass-panel rounded-2xl overflow-hidden flex flex-col h-[500px]">
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+                <h2 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-slate-400"></i> Tickets Activos (Semana)
                 </h2>
-                <span id="task-count-badge" class="px-3 py-1 bg-slate-800 text-slate-300 text-xs rounded-full border border-slate-700">
-                    0 tickets
-                </span>
+                <span id="task-count-badge" class="px-3 py-1 bg-slate-800 text-slate-300 text-xs rounded-full border border-slate-700">0 tickets</span>
             </div>
-
-            <!-- Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
-                            <th class="py-3 px-4">Prioridad</th>
-                            <th class="py-3 px-4">Ticket / Cliente</th>
-                            <th class="py-3 px-4">Modelo</th>
-                            <th class="py-3 px-4 text-center">Unidades</th>
-                            <th class="py-3 px-4">Estado</th>
-                            <th class="py-3 px-4">Fecha Límite</th>
+            
+            <div class="overflow-auto flex-1 relative">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="sticky top-0 bg-slate-900 shadow-md z-10">
+                        <tr class="text-xs text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Ticket / Cliente <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white text-center" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('fecha')">Fecha Límite <i class="fa-solid fa-sort ml-1 opacity-50"></i></th>
                         </tr>
                     </thead>
-                    <tbody id="tasks-table-body" class="divide-y divide-slate-800/60 text-sm">
-                        <!-- Dynamic content filled by JS -->
-                        <tr>
-                            <td colspan="6" class="text-center py-8 text-slate-500">Cargando datos de ClickUp...</td>
-                        </tr>
+                    <tbody id="main-table-body" class="divide-y divide-slate-800/50">
+                        <tr><td colspan="6" class="text-center py-10 text-slate-500">Cargando datos reales de ClickUp...</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
-
     </main>
 
-    <!-- Logic Script -->
+    <!-- OVERLAY / MODAL DE DETALLE -->
+    <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        
+        <div class="relative bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transform transition-transform duration-300 scale-95" id="modal-content-box">
+            
+            <!-- Header Modal -->
+            <div class="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-800/30 rounded-t-2xl">
+                <h3 id="modal-title" class="text-xl font-bold text-white flex items-center gap-3">
+                    <i class="fa-solid fa-layer-group text-slate-400"></i> Detalle
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Contenedor Recomendación (Lean Manufacturing) -->
+            <div id="modal-recommendation-box" class="hidden bg-gradient-to-r from-amber-500/10 to-transparent border-b border-amber-500/20 p-5">
+                <h4 class="text-amber-400 font-semibold mb-2 flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-lightbulb"></i> Recomendación de Optimización de Lotes (Lean)
+                </h4>
+                <ul id="modal-recommendation-list" class="space-y-2 text-sm text-slate-300"></ul>
+            </div>
+
+            <!-- Tabla Modal -->
+            <div class="overflow-auto flex-1 p-5">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="sticky top-0 bg-slate-900">
+                        <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
+                            <th class="pb-3 pr-4">Cliente / Ticket</th>
+                            <th class="pb-3 px-4">Modelo</th>
+                            <th class="pb-3 px-4 text-center">Unidades</th>
+                            <th class="pb-3 pl-4 text-right">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-table-body" class="divide-y divide-slate-800/50"></tbody>
+                </table>
+            </div>
+            
+            <div class="p-4 border-t border-slate-800 bg-slate-900 rounded-b-2xl flex justify-between items-center">
+                <span class="text-sm text-slate-400" id="modal-total-tickets">0 tickets listados</span>
+                <div class="text-right">
+                    <span class="text-xs text-slate-500 uppercase mr-2">Total Unidades:</span>
+                    <span class="text-2xl font-bold text-white" id="modal-total-units">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT -->
     <script>
-        // Extraer número de dispositivos del título o la descripción
+        window.allTasks = [];
+        let currentSort = { column: 'fecha', dir: 'asc' };
+
+        // Parseo de Unidades
         function parseDispositivos(task) {
-            // 1. Buscar en la descripción: "Nº dispositivos: 13"
             if (task.description) {
                 const matchDesc = task.description.match(/Nº\s*dispositivos:\s*(\d+)/i);
                 if (matchDesc) return parseInt(matchDesc[1], 10);
             }
-            // 2. Buscar en el título: "x13", "x2", "x144"
             if (task.name) {
                 const matchTitle = task.name.match(/^x(\d+)/i) || task.name.match(/\bx(\d+)\b/i);
                 if (matchTitle) return parseInt(matchTitle[1], 10);
             }
-            return 1; // Si no encuentra nada, cuenta como 1
+            return 1; 
         }
 
-        // Determinar modelo según el emoji o patrón en el nombre
+        // Parseo de Modelos
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate' };
+            const lowerName = taskName.toLowerCase();
             
-            if (taskName.includes('🟩')) {
-                return { nombre: 'Ixotrack', color: 'emerald' };
+            // Detección de Gateways
+            if (lowerName.includes('gateway') || lowerName.includes('gw') || lowerName.match(/\bgw\b/)) {
+                return { nombre: 'Gateway', color: 'orange' };
             }
-            if (taskName.includes('🟪')) {
-                return { nombre: 'IxotrackproM10LR', color: 'purple' };
-            }
+            // Emojis / Modelos
+            if (taskName.includes('🟩')) return { nombre: 'Ixotrack', color: 'emerald' };
+            if (taskName.includes('🟪')) return { nombre: 'IxotrackproM10LR', color: 'purple' };
             if (taskName.includes('🟦')) {
-                // Distinguimos M10 por el texto si aplica
-                if (taskName.toLowerCase().includes('m10')) {
-                    return { nombre: 'IxotrackproM10', color: 'blue' };
-                }
+                if (lowerName.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue' };
                 return { nombre: 'Ixotrack pro', color: 'sky' };
             }
-            
             return { nombre: 'Otro', color: 'slate' };
         }
 
-        // Comprobar si una fecha timestamp es Hoy
+        // ¿Es Hoy?
         function isToday(timestamp) {
             if (!timestamp) return false;
             const date = new Date(parseInt(timestamp, 10));
             const today = new Date();
-            return date.getDate() === today.getDate() &&
-                   date.getMonth() === today.getMonth() &&
-                   date.getFullYear() === today.getFullYear();
+            return date.toDateString() === today.toDateString();
         }
 
-        // Llamada a la API de Vercel / ClickUp
+        // Normalizar Tareas
+        function normalizeTasks(rawTasks) {
+            return rawTasks.map(task => {
+                const unidades = parseDispositivos(task);
+                const modeloInfo = parseModelo(task.name);
+                const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
+                const esHoy = isToday(task.due_date);
+                const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
+                
+                return {
+                    id: task.id,
+                    nombre: task.name,
+                    unidades: unidades,
+                    modeloInfo: modeloInfo,
+                    estado: estado,
+                    estadoColor: task.status ? task.status.color : '#64748b',
+                    esHoy: esHoy,
+                    timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
+                    prioridadNum: prioridad
+                };
+            });
+        }
+
+        // Conexión real a la API de Vercel
         async function fetchClickUpData() {
             try {
-                // LLAMADA AL ENDPOINT SEGURO DE VERCEL
+                // LLAMADA A TU BACKEND EN VERCEL
                 const response = await fetch('/api/clickup');
                 
-                if (!response.ok) {
-                    throw new Error('Error al consultar el servidor');
-                }
-
+                if (!response.ok) throw new Error('Error al conectar con ClickUp');
                 const data = await response.json();
-                const tasks = data.tasks || [];
+                const rawTasks = data.tasks || [];
 
-                processAndRenderData(tasks);
-
-                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                window.allTasks = normalizeTasks(rawTasks);
+                
+                // Ordenar por defecto: Urgentes primero, luego los más cercanos a caducar
+                window.allTasks.sort((a, b) => b.prioridadNum - a.prioridadNum || a.timestamp - b.timestamp);
+                
+                updateDashboard();
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
             } catch (error) {
-                console.error('Error cargando los datos de ClickUp:', error);
+                console.error(error);
                 document.getElementById('last-update').innerText = 'Error de conexión';
             }
         }
 
-        // Procesar y renderizar los datos en el HTML
-        function processAndRenderData(tasks) {
+        // Lógica de Recomendación de Lotes (Batching)
+        function checkBatchingRecommendations() {
+            let todayCounts = {};
+            let futureCounts = {};
+            
+            window.allTasks.forEach(task => {
+                const model = task.modeloInfo.nombre;
+                if (model === 'Otro' || model === 'Gateway') return;
+                
+                if (task.esHoy) todayCounts[model] = (todayCounts[model] || 0) + task.unidades;
+                else futureCounts[model] = (futureCounts[model] || 0) + task.unidades;
+            });
+
+            let suggestions = [];
+            for (const [model, todayTotal] of Object.entries(todayCounts)) {
+                if (futureCounts[model] && futureCounts[model] > 0) {
+                    const total = todayTotal + futureCounts[model];
+                    suggestions.push(`
+                        <li>Tienes <strong>${todayTotal}</strong> ${model} caducando hoy y <strong>${futureCounts[model]}</strong> programados para el resto de la semana. <br>
+                        👉 <span class="text-amber-300 font-semibold">Sugerencia: Ensambla un lote único de ${total} unidades hoy</span> para evitar cambios de configuración (setup) de los puestos.</li>
+                    `);
+                }
+            }
+
+            const badge = document.getElementById('kpi-sugerencia-badge');
+            if (suggestions.length > 0) {
+                badge.classList.remove('hidden');
+                badge.innerHTML = `<i class="fa-solid fa-lightbulb"></i> ${suggestions.length} Sugerencia${suggestions.length>1?'s':''}`;
+            } else {
+                badge.classList.add('hidden');
+            }
+            
+            return suggestions;
+        }
+
+        // Actualizar UI
+        function updateDashboard() {
             let totalSemana = 0;
             let totalHoy = 0;
             let totalEnCurso = 0;
+            let totalGW = 0;
+            const modelosCount = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0 };
 
-            const modelosCount = {
-                'Ixotrack': 0,
-                'Ixotrack pro': 0,
-                'IxotrackproM10': 0,
-                'IxotrackproM10LR': 0
-            };
-
-            const tableBody = document.getElementById('tasks-table-body');
-            tableBody.innerHTML = '';
-
-            if (tasks.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No hay tickets activos encontrados en ClickUp.</td></tr>';
-            }
-
-            tasks.forEach(task => {
-                const unidades = parseDispositivos(task);
-                const modeloInfo = parseModelo(task.name);
-                const estado = task.status ? task.status.status.toUpperCase() : '';
-                const esHoy = isToday(task.due_date);
-                const esUrgente = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1');
-
-                // Sumadores de KPIs
-                totalSemana += unidades;
-                if (esHoy) totalHoy += unidades;
-                if (estado === 'EN CURSO') totalEnCurso += unidades;
-
-                // Conteo por modelo
-                if (modelosCount.hasOwnProperty(modeloInfo.nombre)) {
-                    modelosCount[modeloInfo.nombre] += unidades;
-                }
-
-                // Fecha límite en texto
-                let fechaTexto = 'Sin fecha';
-                if (task.due_date) {
-                    const d = new Date(parseInt(task.due_date, 10));
-                    fechaTexto = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-                }
-
-                // Generar fila de la tabla
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-800/40 transition-colors';
+            window.allTasks.forEach(t => {
+                totalSemana += t.unidades;
+                if (t.esHoy) totalHoy += t.unidades;
+                if (t.estado === 'EN CURSO') totalEnCurso += t.unidades;
                 
-                row.innerHTML = `
-                    <td class="py-3.5 px-4">
-                        ${esUrgente 
-                            ? '<span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-xs font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Urgente</span>'
-                            : '<span class="text-slate-500 text-xs">Normal</span>'
-                        }
-                    </td>
-                    <td class="py-3.5 px-4 font-medium text-slate-200">
-                        ${task.name}
-                    </td>
-                    <td class="py-3.5 px-4">
-                        <span class="inline-flex items-center gap-1.5 text-xs text-slate-300">
-                            <span class="w-2.5 h-2.5 rounded-full bg-${modeloInfo.color}-500"></span>
-                            ${modeloInfo.nombre}
-                        </span>
-                    </td>
-                    <td class="py-3.5 px-4 text-center font-bold text-slate-100">
-                        ${unidades}
-                    </td>
-                    <td class="py-3.5 px-4">
-                        <span class="px-2.5 py-1 text-xs rounded-full font-medium ${
-                            estado === 'EN CURSO' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                            estado === 'POR HACER' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-                            estado === 'BLOQUEADO' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
-                            'bg-slate-800 text-slate-400'
-                        }">
-                            ${task.status ? task.status.status : 'Desconocido'}
-                        </span>
-                    </td>
-                    <td class="py-3.5 px-4 text-xs ${esHoy ? 'text-amber-400 font-bold' : 'text-slate-400'}">
-                        ${esHoy ? '¡Hoy!' : fechaTexto}
-                    </td>
-                `;
-
-                tableBody.appendChild(row);
+                if (t.modeloInfo.nombre === 'Gateway') totalGW += t.unidades;
+                if (modelosCount[t.modeloInfo.nombre] !== undefined) modelosCount[t.modeloInfo.nombre] += t.unidades;
             });
 
-            // Actualizar KPIs en pantalla
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
             document.getElementById('kpi-encurso').innerText = totalEnCurso;
 
-            // Actualizar Tarjetas de Modelos
             document.getElementById('model-ixotrack').innerText = modelosCount['Ixotrack'];
             document.getElementById('model-ixotrack-pro').innerText = modelosCount['Ixotrack pro'];
             document.getElementById('model-ixotrack-m10').innerText = modelosCount['IxotrackproM10'];
             document.getElementById('model-ixotrack-lr').innerText = modelosCount['IxotrackproM10LR'];
 
-            document.getElementById('task-count-badge').innerText = `${tasks.length} tickets`;
+            if (totalGW > 0) {
+                document.getElementById('gw-badge').classList.remove('hidden');
+                document.getElementById('gw-count').innerText = totalGW;
+            } else {
+                document.getElementById('gw-badge').classList.add('hidden');
+            }
+
+            document.getElementById('task-count-badge').innerText = `${window.allTasks.length} tickets`;
+            
+            checkBatchingRecommendations();
+            renderMainTable();
         }
 
-        // Cargar datos al iniciar y refrescar cada 30 segundos en segundo plano
+        // Render Tabla Principal
+        function renderMainTable() {
+            const tbody = document.getElementById('main-table-body');
+            tbody.innerHTML = '';
+            
+            if (window.allTasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tickets activos.</td></tr>';
+                return;
+            }
+
+            window.allTasks.forEach(task => {
+                const f = new Date(task.timestamp);
+                const fechaText = task.timestamp === 9999999999999 ? 'Sin fecha' : f.toLocaleDateString('es-ES', { day:'numeric', month:'short' });
+                
+                tbody.innerHTML += `
+                    <tr class="row-hover border-b border-slate-800/40 transition-colors">
+                        <td class="py-3 px-4">
+                            ${task.prioridadNum === 1 ? '<span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-xs font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Urgente</span>' : '<span class="text-slate-500 text-xs">Normal</span>'}
+                        </td>
+                        <td class="py-3 px-4 font-medium text-slate-200">${task.nombre}</td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center gap-1.5 text-xs text-slate-300">
+                                <span class="w-2.5 h-2.5 rounded bg-${task.modeloInfo.color}-500"></span>${task.modeloInfo.nombre}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-center font-bold text-white">${task.unidades}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2.5 py-1 text-[10px] rounded-full font-bold uppercase tracking-wide" style="background-color: ${task.estadoColor}20; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}40">
+                                ${task.estado}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 text-xs font-medium ${task.esHoy ? 'text-amber-400' : 'text-slate-400'}">${task.esHoy ? '¡Hoy!' : fechaText}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Ordenar Tabla (Sencillo)
+        function sortTable(col) {
+            currentSort.dir = (currentSort.column === col && currentSort.dir === 'asc') ? 'desc' : 'asc';
+            currentSort.column = col;
+            const mult = currentSort.dir === 'asc' ? 1 : -1;
+
+            window.allTasks.sort((a, b) => {
+                if(col === 'prioridad') return (b.prioridadNum - a.prioridadNum) * mult;
+                if(col === 'unidades') return (a.unidades - b.unidades) * mult;
+                if(col === 'fecha') return (a.timestamp - b.timestamp) * mult;
+                if(col === 'nombre') return a.nombre.localeCompare(b.nombre) * mult;
+                if(col === 'modelo') return a.modeloInfo.nombre.localeCompare(b.modeloInfo.nombre) * mult;
+                if(col === 'estado') return a.estado.localeCompare(b.estado) * mult;
+            });
+            renderMainTable();
+        }
+
+        // Manejo de Modales
+        const modal = document.getElementById('detail-modal');
+        const modalContent = document.getElementById('modal-content-box');
+
+        function openModal(title, tasks, showRecommendations = false) {
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-layer-group text-emerald-400"></i> Desglose: ${title}`;
+            
+            // Sugerencias
+            const recBox = document.getElementById('modal-recommendation-box');
+            if (showRecommendations) {
+                const sugerencias = checkBatchingRecommendations();
+                if (sugerencias.length > 0) {
+                    document.getElementById('modal-recommendation-list').innerHTML = sugerencias.join('');
+                    recBox.classList.remove('hidden');
+                } else {
+                    recBox.classList.add('hidden');
+                }
+            } else {
+                recBox.classList.add('hidden');
+            }
+
+            // Llenar tabla
+            const tbody = document.getElementById('modal-table-body');
+            let tUnidades = 0;
+            tbody.innerHTML = '';
+            
+            tasks.forEach(t => {
+                tUnidades += t.unidades;
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-3 pr-4 font-medium text-slate-200 text-sm">${t.nombre}</td>
+                        <td class="py-3 px-4"><span class="flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-${t.modeloInfo.color}-500"></span>${t.modeloInfo.nombre}</span></td>
+                        <td class="py-3 px-4 text-center font-bold text-white">${t.unidades}</td>
+                        <td class="py-3 pl-4 text-right"><span class="px-2 py-0.5 text-[10px] rounded uppercase tracking-wide border" style="background-color: ${t.estadoColor}15; color: ${t.estadoColor}; border-color: ${t.estadoColor}30">${t.estado}</span></td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('modal-total-tickets').innerText = `${tasks.length} tickets listados`;
+            document.getElementById('modal-total-units').innerText = tUnidades;
+
+            // Mostrar animación
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        // Cargar al inicio y refrescar cada 1 minuto
         fetchClickUpData();
-        setInterval(fetchClickUpData, 30000);
+        setInterval(fetchClickUpData, 60000);
     </script>
 </body>
 </html>
