@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Producción - Ixorigue</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased p-4 md:p-8">
+
+    <!-- Header / Navbar -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-8 border-b border-slate-800 gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Panel de Control de Producción</h1>
+            </div>
+            <p class="text-slate-400 text-sm mt-1">Sincronización en tiempo real con ClickUp</p>
+        </div>
+        
+        <div class="flex items-center gap-4 bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 text-xs md:text-sm">
+            <span class="text-slate-400">Última actualización:</span>
+            <span id="last-update" class="font-mono text-emerald-400 font-medium">Cargando...</span>
+            <button onclick="fetchClickUpData()" class="ml-2 p-1.5 text-slate-400 hover:text-white transition-colors" title="Actualizar ahora">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="space-y-8 max-w-7xl mx-auto">
+
+        <!-- Top Metrics Cards (KPIs) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- KPI 1: Semana -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-sm font-medium">A Fabricar (Esta Semana)</p>
+                        <h2 id="kpi-semana" class="text-4xl font-extrabold text-white mt-2">0</h2>
+                    </div>
+                    <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+                        <i class="fa-solid fa-calendar-week text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-slate-500">
+                    Total dispositivos programados
+                </div>
+            </div>
+
+            <!-- KPI 2: Hoy -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-sm font-medium">A Fabricar (Hoy)</p>
+                        <h2 id="kpi-hoy" class="text-4xl font-extrabold text-amber-400 mt-2">0</h2>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+                        <i class="fa-solid fa-clock text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-slate-500">
+                    Con fecha límite para el día de hoy
+                </div>
+            </div>
+
+            <!-- KPI 3: En Curso -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-slate-400 text-sm font-medium">Dispositivos En Curso</p>
+                        <h2 id="kpi-encurso" class="text-4xl font-extrabold text-emerald-400 mt-2">0</h2>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                        <i class="fa-solid fa-gears text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-xs text-slate-500">
+                    Actualmente en proceso de ensamblaje/revisión
+                </div>
+            </div>
+        </div>
+
+        <!-- Models Breakdown Grid -->
+        <section>
+            <h2 class="text-lg font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-microchip text-slate-400"></i> Desglose por Modelo
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Ixotrack (Verde) -->
+                <div class="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-5">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-4 h-4 rounded-md bg-emerald-500"></div>
+                        <h3 class="font-semibold text-slate-200">Ixotrack</h3>
+                    </div>
+                    <div class="flex justify-between items-baseline mt-2">
+                        <span id="model-ixotrack" class="text-3xl font-bold text-white">0</span>
+                        <span class="text-xs text-slate-400">unidades</span>
+                    </div>
+                </div>
+
+                <!-- Ixotrack pro (Azul Claro) -->
+                <div class="bg-slate-900/60 border border-sky-400/30 rounded-xl p-5">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-4 h-4 rounded-md bg-sky-400"></div>
+                        <h3 class="font-semibold text-slate-200">Ixotrack pro</h3>
+                    </div>
+                    <div class="flex justify-between items-baseline mt-2">
+                        <span id="model-ixotrack-pro" class="text-3xl font-bold text-white">0</span>
+                        <span class="text-xs text-slate-400">unidades</span>
+                    </div>
+                </div>
+
+                <!-- IxotrackproM10 (Azul Oscuro) -->
+                <div class="bg-slate-900/60 border border-blue-600/30 rounded-xl p-5">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-4 h-4 rounded-md bg-blue-600"></div>
+                        <h3 class="font-semibold text-slate-200">IxotrackproM10</h3>
+                    </div>
+                    <div class="flex justify-between items-baseline mt-2">
+                        <span id="model-ixotrack-m10" class="text-3xl font-bold text-white">0</span>
+                        <span class="text-xs text-slate-400">unidades</span>
+                    </div>
+                </div>
+
+                <!-- IxotrackproM10LR (Morado) -->
+                <div class="bg-slate-900/60 border border-purple-500/30 rounded-xl p-5">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-4 h-4 rounded-md bg-purple-500"></div>
+                        <h3 class="font-semibold text-slate-200">IxotrackproM10LR</h3>
+                    </div>
+                    <div class="flex justify-between items-baseline mt-2">
+                        <span id="model-ixotrack-lr" class="text-3xl font-bold text-white">0</span>
+                        <span class="text-xs text-slate-400">unidades</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Task List Section -->
+        <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-slate-400"></i> Tickets Activos de la Semana
+                </h2>
+                <span id="task-count-badge" class="px-3 py-1 bg-slate-800 text-slate-300 text-xs rounded-full border border-slate-700">
+                    0 tickets
+                </span>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4">Prioridad</th>
+                            <th class="py-3 px-4">Ticket / Cliente</th>
+                            <th class="py-3 px-4">Modelo</th>
+                            <th class="py-3 px-4 text-center">Unidades</th>
+                            <th class="py-3 px-4">Estado</th>
+                            <th class="py-3 px-4">Fecha Límite</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-table-body" class="divide-y divide-slate-800/60 text-sm">
+                        <!-- Dynamic content filled by JS -->
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-slate-500">Cargando datos de ClickUp...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Logic Script -->
+    <script>
+        // Extraer número de dispositivos del título o la descripción
+        function parseDispositivos(task) {
+            // 1. Buscar en la descripción: "Nº dispositivos: 13"
+            if (task.description) {
+                const matchDesc = task.description.match(/Nº\s*dispositivos:\s*(\d+)/i);
+                if (matchDesc) return parseInt(matchDesc[1], 10);
+            }
+            // 2. Buscar en el título: "x13", "x2", "x144"
+            if (task.name) {
+                const matchTitle = task.name.match(/^x(\d+)/i) || task.name.match(/\bx(\d+)\b/i);
+                if (matchTitle) return parseInt(matchTitle[1], 10);
+            }
+            return 1; // Si no encuentra nada, cuenta como 1
+        }
+
+        // Determinar modelo según el emoji o patrón en el nombre
+        function parseModelo(taskName) {
+            if (!taskName) return { nombre: 'Otro', color: 'slate' };
+            
+            if (taskName.includes('🟩')) {
+                return { nombre: 'Ixotrack', color: 'emerald' };
+            }
+            if (taskName.includes('🟪')) {
+                return { nombre: 'IxotrackproM10LR', color: 'purple' };
+            }
+            if (taskName.includes('🟦')) {
+                // Distinguimos M10 por el texto si aplica
+                if (taskName.toLowerCase().includes('m10')) {
+                    return { nombre: 'IxotrackproM10', color: 'blue' };
+                }
+                return { nombre: 'Ixotrack pro', color: 'sky' };
+            }
+            
+            return { nombre: 'Otro', color: 'slate' };
+        }
+
+        // Comprobar si una fecha timestamp es Hoy
+        function isToday(timestamp) {
+            if (!timestamp) return false;
+            const date = new Date(parseInt(timestamp, 10));
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        // Llamada a la API de Vercel / ClickUp
+        async function fetchClickUpData() {
+            try {
+                // LLAMADA AL ENDPOINT SEGURO DE VERCEL
+                const response = await fetch('/api/clickup');
+                
+                if (!response.ok) {
+                    throw new Error('Error al consultar el servidor');
+                }
+
+                const data = await response.json();
+                const tasks = data.tasks || [];
+
+                processAndRenderData(tasks);
+
+                document.getElementById('last-update').innerText = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            } catch (error) {
+                console.error('Error cargando los datos de ClickUp:', error);
+                document.getElementById('last-update').innerText = 'Error de conexión';
+            }
+        }
+
+        // Procesar y renderizar los datos en el HTML
+        function processAndRenderData(tasks) {
+            let totalSemana = 0;
+            let totalHoy = 0;
+            let totalEnCurso = 0;
+
+            const modelosCount = {
+                'Ixotrack': 0,
+                'Ixotrack pro': 0,
+                'IxotrackproM10': 0,
+                'IxotrackproM10LR': 0
+            };
+
+            const tableBody = document.getElementById('tasks-table-body');
+            tableBody.innerHTML = '';
+
+            if (tasks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500">No hay tickets activos encontrados en ClickUp.</td></tr>';
+            }
+
+            tasks.forEach(task => {
+                const unidades = parseDispositivos(task);
+                const modeloInfo = parseModelo(task.name);
+                const estado = task.status ? task.status.status.toUpperCase() : '';
+                const esHoy = isToday(task.due_date);
+                const esUrgente = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1');
+
+                // Sumadores de KPIs
+                totalSemana += unidades;
+                if (esHoy) totalHoy += unidades;
+                if (estado === 'EN CURSO') totalEnCurso += unidades;
+
+                // Conteo por modelo
+                if (modelosCount.hasOwnProperty(modeloInfo.nombre)) {
+                    modelosCount[modeloInfo.nombre] += unidades;
+                }
+
+                // Fecha límite en texto
+                let fechaTexto = 'Sin fecha';
+                if (task.due_date) {
+                    const d = new Date(parseInt(task.due_date, 10));
+                    fechaTexto = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                }
+
+                // Generar fila de la tabla
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-slate-800/40 transition-colors';
+                
+                row.innerHTML = `
+                    <td class="py-3.5 px-4">
+                        ${esUrgente 
+                            ? '<span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-xs font-semibold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Urgente</span>'
+                            : '<span class="text-slate-500 text-xs">Normal</span>'
+                        }
+                    </td>
+                    <td class="py-3.5 px-4 font-medium text-slate-200">
+                        ${task.name}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-slate-300">
+                            <span class="w-2.5 h-2.5 rounded-full bg-${modeloInfo.color}-500"></span>
+                            ${modeloInfo.nombre}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-center font-bold text-slate-100">
+                        ${unidades}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="px-2.5 py-1 text-xs rounded-full font-medium ${
+                            estado === 'EN CURSO' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            estado === 'POR HACER' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                            estado === 'BLOQUEADO' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                            'bg-slate-800 text-slate-400'
+                        }">
+                            ${task.status ? task.status.status : 'Desconocido'}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs ${esHoy ? 'text-amber-400 font-bold' : 'text-slate-400'}">
+                        ${esHoy ? '¡Hoy!' : fechaTexto}
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+            // Actualizar KPIs en pantalla
+            document.getElementById('kpi-semana').innerText = totalSemana;
+            document.getElementById('kpi-hoy').innerText = totalHoy;
+            document.getElementById('kpi-encurso').innerText = totalEnCurso;
+
+            // Actualizar Tarjetas de Modelos
+            document.getElementById('model-ixotrack').innerText = modelosCount['Ixotrack'];
+            document.getElementById('model-ixotrack-pro').innerText = modelosCount['Ixotrack pro'];
+            document.getElementById('model-ixotrack-m10').innerText = modelosCount['IxotrackproM10'];
+            document.getElementById('model-ixotrack-lr').innerText = modelosCount['IxotrackproM10LR'];
+
+            document.getElementById('task-count-badge').innerText = `${tasks.length} tickets`;
+        }
+
+        // Cargar datos al iniciar y refrescar cada 30 segundos en segundo plano
+        fetchClickUpData();
+        setInterval(fetchClickUpData, 30000);
+    </script>
+</body>
+</html>
