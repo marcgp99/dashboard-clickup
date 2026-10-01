@@ -1,11 +1,13 @@
 export default async function handler(req, res) {
-  // Leemos el token que pusiste en Vercel
   const apiKey = process.env.CLICKUP_API_KEY;
-  // El ID de tu lista de Producción
-  const listId = '901510789406';
+  // El ID de tu espacio de trabajo (Team ID)
+  const teamId = '90151302562';
+  // El ID de la carpeta de producción
+  const folderId = '901515642734';
 
   try {
-    const response = await fetch(`https://api.clickup.com/api/v2/list/${listId}/task?subtasks=true&include_closed=false`, {
+    // Usamos el endpoint para buscar tareas dentro de una carpeta específica
+    const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=false`, {
       method: 'GET',
       headers: {
         'Authorization': apiKey,
