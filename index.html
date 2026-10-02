@@ -58,7 +58,7 @@
         
         <!-- KPIs PRINCIPALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <!-- Semana Móvil (7 días laborables) -->
+            <!-- Semana Móvil -->
             <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">A Fabricar (Próx 7 Días Lab.)</p>
                 <div class="flex justify-between items-end">
@@ -73,7 +73,7 @@
                     <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
                         A Fabricar (Hoy)
                         <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">
-                            <i class="fa-solid fa-bolt"></i> Lote Óptimo
+                            <i class="fa-solid fa-bolt"></i> Lotes Disponibles
                         </span>
                     </p>
                 </div>
@@ -118,7 +118,7 @@
             </div>
         </div>
 
-        <!-- CAJAS NUMÉRICAS DE MODELOS (Basadas en los Próximos 7 Días Lab.) -->
+        <!-- CAJAS NUMÉRICAS DE MODELOS -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
             <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-emerald"></div><span class="text-sm font-medium">Ixotrack</span></div>
@@ -180,10 +180,10 @@
                 </button>
             </div>
 
-            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN (VERSIÓN AVANZADA LEAN) -->
+            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN -->
             <div id="modal-recommendation-box" class="hidden bg-slate-800/80 border-b-2 border-brand-amber/50 p-5">
                 <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <i class="fa-solid fa-bolt"></i> Recomendaciones de Ensamblaje Eficiente
+                    <i class="fa-solid fa-bolt"></i> Recomendaciones de Ensamblaje Eficiente (Lotes)
                 </h4>
                 <div id="modal-recommendation-list" class="space-y-3"></div>
             </div>
@@ -221,7 +221,6 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // DETECCIÓN DE ETIQUETA "SOLO RECIBIR"
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 if (task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"))) {
@@ -261,14 +260,13 @@
             return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
         }
 
-        // MOTOR DE FECHAS: 7 DÍAS LABORABLES
         function getEndOfBusinessDays(startDate, days) {
             let date = new Date(startDate.getTime());
             let added = 0;
             while (added < days) {
                 date.setDate(date.getDate() + 1);
                 if (date.getDay() !== 0 && date.getDay() !== 6) {
-                    added++; // Solo suma si es Lunes a Viernes
+                    added++; 
                 }
             }
             date.setHours(23, 59, 59, 999);
@@ -283,8 +281,6 @@
             const now = new Date();
             
             const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
-            
-            // Calculamos el límite exacto de 7 días de taller (sin contar findes)
             const endOfWindow = getEndOfBusinessDays(now, 7);
 
             const isTodayOrOverdue = ts <= endOfToday;
@@ -343,7 +339,7 @@
             }
         }
 
-        // MOTOR DE LOTES: AHORA BASADO EN LA SEMANA MÓVIL (7 Días Lab)
+        // MOTOR DE RECOMENDACIONES DESBLOQUEADO
         function checkBatchingRecommendations() {
             let modelsData = {};
             
@@ -351,7 +347,6 @@
                 if (task.esSoloRecibir) return; 
                 if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
                 
-                // Solo miramos dentro de la ventana de 7 días laborables
                 if (!task.dateInfo.isWithinWindow) return; 
                 
                 const model = task.modeloInfo.nombre;
@@ -372,7 +367,9 @@
 
             let suggestions = [];
             for (const [model, data] of Object.entries(modelsData)) {
-                if (data.todayUnits > 0 && data.futureUnits > 0) {
+                // NUEVA REGLA: Sugerir SIEMPRE que haya trabajo futuro en los próximos 7 días, 
+                // incluso si HOY hay 0 unidades urgentes.
+                if (data.futureUnits > 0) {
                     const batchTotal = data.todayUnits + data.futureUnits;
                     
                     const ticketsHtml = data.futureTickets.map(t => 
@@ -382,10 +379,10 @@
                     suggestions.push(`
                         <div class="bg-slate-800/60 p-4 rounded-xl border border-amber-500/30 mb-3 shadow-inner">
                             <div class="flex items-center gap-3 mb-2 flex-wrap">
-                                <span class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote Óptimo: ${model}</span>
+                                <span class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote: ${model}</span>
                                 <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar (Próx 7 días L-V): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base ml-1">Lote de ${batchTotal} uds</strong></span>
                             </div>
-                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-700 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas, trae a producción hoy estos tiquets de los próximos días:</p>
+                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-700 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas hoy, adelanta a producción estos tiquets futuros:</p>
                             <div class="flex flex-wrap gap-2 mt-1">
                                 ${ticketsHtml}
                             </div>
