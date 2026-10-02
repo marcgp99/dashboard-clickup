@@ -232,7 +232,16 @@
             return fullText.includes("solo recibir");
         }
 
-        // ASIGNADOR DE COLORES PARA ETIQUETAS
+        // ASIGNADOR DE COLORES PARA ETIQUETAS (Texto y Gráficos)
+        function getTagColorHex(tag) {
+            const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (t.includes("REEMPLAZO")) return '#ef4444'; // Rojo
+            if (t.includes("SOLO RECIBIR")) return '#10b981'; // Verde
+            if (t.includes("ENVIO")) return '#3b82f6'; // Azul
+            if (t.includes("SIN ETIQUETA")) return '#64748b'; // Gris
+            return '#8b5cf6'; // Morado por defecto (Ventas, etc.)
+        }
+
         function getTagHtml(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) {
@@ -242,7 +251,6 @@
             } else if (t.includes("ENVIO")) {
                 return `<span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
             }
-            // Etiqueta por defecto (morado)
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
@@ -252,10 +260,9 @@
                 return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>';
             }
             
-            // Si tiene etiqueta de envío, también la pintamos verde en prioridad
             const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
             if (hasEnvio) {
-                return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-truck-fast mr-1"></i>Envíos</span>';
+                return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-truck-fast mr-1"></i>Envíos</span>';
             }
             
             if (task.prioridadNum === 1) {
@@ -471,15 +478,19 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
+            // Generamos el array de colores dinámico para el gráfico de Etiquetas
+            const etiquetasLabels = Object.keys(agrupacionEtiquetas);
+            const etiquetasColors = etiquetasLabels.map(tag => getTagColorHex(tag));
+
             const ctxEtiquetas = document.getElementById('chartEtiquetas').getContext('2d');
             charts.etiquetas = new Chart(ctxEtiquetas, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(agrupacionEtiquetas),
+                    labels: etiquetasLabels,
                     datasets: [{
                         label: 'Tiquets por Etiqueta',
                         data: Object.values(agrupacionEtiquetas),
-                        backgroundColor: '#8b5cf6',
+                        backgroundColor: etiquetasColors, // Array de colores dinámico
                         borderRadius: 4
                     }]
                 },
