@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BI Producción - Ixorigue</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,9 +19,7 @@
             }
         }
     </script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para los Gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -32,8 +29,6 @@
         .bi-kpi-card { background: linear-gradient(145deg, #0f172a 0%, #151e2e 100%); border: 1px solid #1e293b; transition: all 0.2s ease; cursor: pointer; }
         .bi-kpi-card:hover { transform: translateY(-3px); border-color: #3b82f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
         .table-row-hover:hover { background-color: #1e293b; }
-        
-        /* Scrollbar profesional */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -42,14 +37,12 @@
 </head>
 <body class="text-slate-300 min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
-    <!-- HEADER BI -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
-                <i class="fa-solid fa-chart-pie text-brand-blue"></i>
-                Dashboard de Producción
+                <i class="fa-solid fa-chart-pie text-brand-blue"></i> Panel de Producción
             </h1>
-            <p class="text-slate-500 text-sm mt-1">Inteligencia de Datos y Monitorización ClickUp</p>
+            <p class="text-slate-500 text-sm mt-1">Inteligencia de Datos y Sincronización ClickUp</p>
         </div>
         <div class="flex items-center gap-4 mt-4 md:mt-0">
             <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400">
@@ -63,25 +56,24 @@
 
     <main class="space-y-6 max-w-[1600px] mx-auto">
         
-        <!-- ROW 1: KPIs PRINCIPALES (4 Columnas) -->
+        <!-- KPIs PRINCIPALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            
-            <!-- KPI: Semana -->
+            <!-- Semana -->
             <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks.filter(t => t.dateInfo.isThisWeek))" class="bi-kpi-card rounded-xl p-5 relative group">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Volumen Semanal</p>
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">A Fabricar (Esta Semana)</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-semana" class="text-3xl font-bold text-white">0</h2>
                     <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg"><i class="fa-solid fa-calendar-week"></i></div>
                 </div>
             </div>
 
-            <!-- KPI: Hoy / Atrasado -->
-            <div onclick="openModal('Prioridad Hoy / Atrasado', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
+            <!-- Hoy -->
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
                 <div class="flex justify-between items-start">
                     <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
-                        Cola Inmediata (Hoy)
-                        <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-400 text-[9px] px-1.5 py-0.5 rounded border border-amber-500/30 animate-pulse">
-                            <i class="fa-solid fa-bolt"></i> Lote
+                        A Fabricar (Hoy)
+                        <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">
+                            <i class="fa-solid fa-lightbulb"></i> Sugerencia
                         </span>
                     </p>
                 </div>
@@ -91,18 +83,18 @@
                 </div>
             </div>
 
-            <!-- KPI: En Curso -->
+            <!-- En Curso -->
             <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO'))" class="bi-kpi-card rounded-xl p-5 relative group">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Ensamblaje Activo</p>
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Dispositivos en Curso</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-encurso" class="text-3xl font-bold text-emerald-400">0</h2>
                     <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="fa-solid fa-gears"></i></div>
                 </div>
             </div>
 
-            <!-- KPI: Gateways -->
-            <div onclick="openModal('Gateways Detectados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway'))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Gateways (GW)</p>
+            <!-- Gateways LISTOS -->
+            <div onclick="openModal('Gateways Listos', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO'))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Gateways Listos (GW)</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-gw" class="text-3xl font-bold text-orange-400">0</h2>
                     <div class="p-2 bg-orange-500/10 text-orange-400 rounded-lg"><i class="fa-solid fa-router"></i></div>
@@ -110,29 +102,23 @@
             </div>
         </div>
 
-        <!-- ROW 2: GRÁFICOS BI (3 Columnas) -->
+        <!-- GRÁFICOS BI -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            
-            <!-- Chart 1 -->
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Distribución por Modelo</h3>
                 <div class="w-full h-48 relative"><canvas id="chartModelos"></canvas></div>
             </div>
-
-            <!-- Chart 2 -->
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Proyección de Carga de Trabajo</h3>
                 <div class="w-full h-48 relative"><canvas id="chartTiempos"></canvas></div>
             </div>
-
-            <!-- Chart 3 -->
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Estado de Tickets Activos</h3>
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Estado de Tickets</h3>
                 <div class="w-full h-48 relative"><canvas id="chartEstados"></canvas></div>
             </div>
         </div>
 
-        <!-- ROW 3: CAJAS NUMÉRICAS DE MODELOS (Para consulta rápida exacta) -->
+        <!-- CAJAS NUMÉRICAS DE MODELOS -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
             <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack'))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-emerald"></div><span class="text-sm font-medium">Ixotrack</span></div>
@@ -152,10 +138,10 @@
             </div>
         </div>
 
-        <!-- ROW 4: TABLA PRINCIPAL DATOS CRUDOS -->
+        <!-- TABLA PRINCIPAL DATOS CRUDOS -->
         <section class="bi-panel overflow-hidden flex flex-col h-[500px]">
             <div class="p-4 border-b border-slate-800 bg-slate-900 flex justify-between items-center">
-                <h2 class="text-sm font-bold text-slate-200">DATA LAKE: Base de Tickets Abiertos</h2>
+                <h2 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-list-check text-slate-400 mr-2"></i> Todos los Tickets</h2>
                 <span id="task-count-badge" class="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs rounded-md border border-slate-700 font-mono">0 ROWS</span>
             </div>
             
@@ -168,7 +154,7 @@
                             <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                             <th class="py-3 px-4 cursor-pointer hover:text-white text-center" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                             <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('fecha')">Deadline <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('fecha')">Fecha Límite <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                         </tr>
                     </thead>
                     <tbody id="main-table-body" class="divide-y divide-slate-800">
@@ -179,13 +165,12 @@
         </section>
     </main>
 
-    <!-- MODAL (OVERLAY) -->
+    <!-- MODAL -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeModal()"></div>
         
         <div class="relative bg-slate-900 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transform transition-transform duration-300 scale-95" id="modal-content-box">
             
-            <!-- Header Modal -->
             <div class="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-900 rounded-t-xl">
                 <h3 id="modal-title" class="text-lg font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-filter text-brand-blue"></i> Desglose
@@ -195,15 +180,14 @@
                 </button>
             </div>
 
-            <!-- CAJA DE SUGERENCIA DE BATCHING (LEAN) CORREGIDA -->
-            <div id="modal-recommendation-box" class="hidden bg-slate-800/50 border-b border-brand-amber/30 p-5">
+            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN -->
+            <div id="modal-recommendation-box" class="hidden bg-slate-800/80 border-b-2 border-brand-amber/50 p-5">
                 <h4 class="text-amber-400 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <i class="fa-solid fa-bolt"></i> Optimización Lean Manufacturing
+                    <i class="fa-solid fa-lightbulb"></i> Sugerencia de Producción (Optimización de Lotes)
                 </h4>
                 <ul id="modal-recommendation-list" class="space-y-3 text-sm text-slate-300 mt-3"></ul>
             </div>
 
-            <!-- Tabla Modal -->
             <div class="overflow-auto flex-1 p-5">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 bg-slate-900">
@@ -228,9 +212,8 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT & LOGICA -->
+    <!-- JAVASCRIPT -->
     <script>
-        // --- CONFIGURACIÓN DE GRÁFICOS (Chart.js) ---
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter, sans-serif';
         let charts = {};
@@ -238,7 +221,6 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // Parsea Uds
         function parseDispositivos(task) {
             if (task.description) {
                 const matchDesc = task.description.match(/Nº\s*dispositivos:\s*(\d+)/i);
@@ -251,24 +233,25 @@
             return 1; 
         }
 
-        // Parsea Modelo & GATEWAYS (Lógica mejorada)
+        // DETECCIÓN MEJORADA DE GATEWAYS Y ANTENAS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
             
-            // Detección estricta de Gateways
-            if (n.match(/\bgw\b/) || n.match(/\bgateway/)) return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
+            if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
+                return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
+            }
             
             if (taskName.includes('🟩')) return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
             if (taskName.includes('🟪')) return { nombre: 'IxotrackproM10LR', color: 'purple', hex: '#8b5cf6' };
             if (taskName.includes('🟦')) {
                 if (n.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue', hex: '#1d4ed8' };
-                return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' }; // brand-blue
+                return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' }; 
             }
             return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
         }
 
-        // MOTOR DE FECHAS: COMPARTIMENTOS ESTANCOS Y EXACTOS
+        // MOTOR DE FECHAS ESTANCO
         function parseFechas(timestamp) {
             if (!timestamp || timestamp === 9999999999999) {
                 return { isTodayOrOverdue: false, isLaterThisWeek: false, isThisWeek: false, category: 'Sin Fecha' };
@@ -276,19 +259,14 @@
             const ts = parseInt(timestamp, 10);
             const now = new Date();
             
-            // Límite final de hoy (23:59:59)
             const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
-            
-            // Límite final de este domingo (23:59:59)
             const day = now.getDay() || 7; 
             const endOfSunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day), 23, 59, 59, 999).getTime();
-            
-            // Límite final de mes
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
 
             const isTodayOrOverdue = ts <= endOfToday;
             const isLaterThisWeek = ts > endOfToday && ts <= endOfSunday;
-            const isThisWeek = isTodayOrOverdue || isLaterThisWeek; // Suma perfecta sin duplicados
+            const isThisWeek = isTodayOrOverdue || isLaterThisWeek; 
 
             let category = 'Futuro (>Mes)';
             if (isTodayOrOverdue) category = 'Hoy/Atrasado';
@@ -298,7 +276,6 @@
             return { isTodayOrOverdue, isLaterThisWeek, isThisWeek, category };
         }
 
-        // Normalización General
         function normalizeTasks(rawTasks) {
             return rawTasks.map(task => {
                 const unidades = parseDispositivos(task);
@@ -321,7 +298,6 @@
             });
         }
 
-        // Llamada a la API
         async function fetchClickUpData() {
             try {
                 const response = await fetch('/api/clickup');
@@ -340,13 +316,17 @@
             }
         }
 
-        // SUGERENCIAS DE BATCHING (Matemática corregida)
+        // SUGERENCIAS DE PRODUCCIÓN EXACTAS
         function checkBatchingRecommendations() {
             let todayCounts = {};
             let futureThisWeekCounts = {};
             
             window.allTasks.forEach(task => {
+                // Si la tarea ya está completada o lista, no recomendamos fabricarla
+                if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
+                
                 if (!task.dateInfo.isThisWeek) return; 
+                
                 const model = task.modeloInfo.nombre;
                 if (model === 'Otro' || model === 'Gateway') return;
                 
@@ -364,9 +344,9 @@
                     const batchTotal = todayTotal + futureTotal;
                     
                     suggestions.push(`
-                        <li class="bg-slate-900 p-3 rounded-lg border border-slate-700">
-                            Hay <strong>${todayTotal}</strong> ${model} requeridos hoy (o atrasados) y <strong>${futureTotal}</strong> para próximos días de esta semana. <br>
-                            <span class="text-amber-400 mt-1 inline-block">👉 <strong>Acción Lean:</strong> Ensambla el lote completo de <strong>${batchTotal} unidades</strong> hoy para suprimir los tiempos muertos de cambio de setup (herramientas/piezas).</span>
+                        <li class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+                            Tienes <strong>${todayTotal}</strong> ${model} para hoy y <strong>${futureTotal}</strong> para el resto de la semana.<br>
+                            <span class="text-amber-400 mt-2 inline-block">👉 <strong>Sugerencia:</strong> Ensambla un lote único de <strong>${batchTotal} unidades</strong> hoy para evitar cambios de configuración (setup) en las mesas.</span>
                         </li>
                     `);
                 }
@@ -382,14 +362,11 @@
             return suggestions;
         }
 
-        // DIBUJAR GRÁFICOS BI
         function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEstados) {
-            // Destruir gráficos anteriores si existen para redibujar limpios
             if(charts.modelos) charts.modelos.destroy();
             if(charts.tiempos) charts.tiempos.destroy();
             if(charts.estados) charts.estados.destroy();
 
-            // 1. Chart Modelos
             const ctxModelos = document.getElementById('chartModelos').getContext('2d');
             charts.modelos = new Chart(ctxModelos, {
                 type: 'doughnut',
@@ -405,7 +382,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
             });
 
-            // 2. Chart Tiempos (Timeline Workload)
             const ctxTiempos = document.getElementById('chartTiempos').getContext('2d');
             charts.tiempos = new Chart(ctxTiempos, {
                 type: 'bar',
@@ -421,7 +397,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
-            // 3. Chart Estados
             const ctxEstados = document.getElementById('chartEstados').getContext('2d');
             charts.estados = new Chart(ctxEstados, {
                 type: 'bar',
@@ -438,40 +413,35 @@
             });
         }
 
-        // UPDATE DASHBOARD Y CÁLCULOS
         function updateDashboard() {
             let totalSemana = 0;
             let totalHoy = 0;
-            let totalGW = 0;
+            let totalGWListos = 0;
             
-            // Agrupadores para los gráficos
             let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Gateway': 0, 'Otro': 0 };
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Resto Semana': 0, 'Este Mes': 0, 'Futuro (>Mes)': 0, 'Sin Fecha': 0 };
             let statsEstados = {};
 
             window.allTasks.forEach(t => {
-                // KPIs Principales
                 if (t.dateInfo.isThisWeek) totalSemana += t.unidades;
                 if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
-                if (t.modeloInfo.nombre === 'Gateway') totalGW += t.unidades;
+                
+                // GATEWAYS: SOLO SUMA SI ESTÁN EN ESTADO 'LISTO'
+                if (t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO') {
+                    totalGWListos += t.unidades;
+                }
 
-                // Sumas para Cajas de Modelos
                 if (statsModelos[t.modeloInfo.nombre] !== undefined) {
                     statsModelos[t.modeloInfo.nombre] += t.unidades;
                 }
-
-                // Sumas para Gráfica Timeline
                 statsTiempos[t.dateInfo.category] += t.unidades;
-
-                // Sumas para Gráfica Estados (Contamos Tickets, no unidades, para ver cuellos de botella)
                 statsEstados[t.estado] = (statsEstados[t.estado] || 0) + 1;
             });
 
-            // Pintar KPIs Textuales
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
             document.getElementById('kpi-encurso').innerText = statsEstados['EN CURSO'] || 0;
-            document.getElementById('kpi-gw').innerText = totalGW;
+            document.getElementById('kpi-gw').innerText = totalGWListos;
 
             document.getElementById('mod-ixo').innerText = statsModelos['Ixotrack'];
             document.getElementById('mod-pro').innerText = statsModelos['Ixotrack pro'];
@@ -483,12 +453,10 @@
             checkBatchingRecommendations();
             renderMainTable();
             
-            // Filtrar ceros para el gráfico de Modelos para que quede más limpio
             Object.keys(statsModelos).forEach(k => { if(statsModelos[k] === 0) delete statsModelos[k]; });
             renderCharts(statsModelos, statsTiempos, statsEstados);
         }
 
-        // RENDER TABLA PRINCIPAL
         function renderMainTable() {
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
@@ -528,7 +496,6 @@
             });
         }
 
-        // ORDENAR TABLAS
         function sortTable(col) {
             currentSort.dir = (currentSort.column === col && currentSort.dir === 'asc') ? 'desc' : 'asc';
             currentSort.column = col;
@@ -545,7 +512,6 @@
             renderMainTable();
         }
 
-        // MODALES
         const modal = document.getElementById('detail-modal');
         const modalContent = document.getElementById('modal-content-box');
 
@@ -610,7 +576,6 @@
             }, 300);
         }
 
-        // Iniciar
         fetchClickUpData();
         setInterval(fetchClickUpData, 60000);
     </script>
