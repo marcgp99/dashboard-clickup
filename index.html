@@ -84,8 +84,8 @@
             </div>
 
             <!-- En Curso -->
-            <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO' && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Dispositivos en Curso</p>
+            <div onclick="openModal('Tiquets en curso', window.allTasks.filter(t => t.estado === 'EN CURSO' && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Tiquets en curso</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-encurso" class="text-3xl font-bold text-emerald-400">0</h2>
                     <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="fa-solid fa-gears"></i></div>
@@ -93,8 +93,8 @@
             </div>
 
             <!-- Gateways LISTOS -->
-            <div onclick="openModal('Gateways Listos', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO'))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Gateways Listos (GW)</p>
+            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO'))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
+                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">GW Reemplazados</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-gw" class="text-3xl font-bold text-orange-400">0</h2>
                     <div class="p-2 bg-orange-500/10 text-orange-400 rounded-lg"><i class="fa-solid fa-router"></i></div>
