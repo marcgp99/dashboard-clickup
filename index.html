@@ -73,7 +73,7 @@
                     <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
                         A Fabricar (Hoy)
                         <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">
-                            <i class="fa-solid fa-lightbulb"></i> Sugerencia
+                            <i class="fa-solid fa-bolt"></i> Lote Óptimo
                         </span>
                     </p>
                 </div>
@@ -180,12 +180,12 @@
                 </button>
             </div>
 
-            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN -->
+            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN (VERSIÓN AVANZADA) -->
             <div id="modal-recommendation-box" class="hidden bg-slate-800/80 border-b-2 border-brand-amber/50 p-5">
-                <h4 class="text-amber-400 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <i class="fa-solid fa-lightbulb"></i> Sugerencia de Producción (Optimización de Lotes)
+                <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
+                    <i class="fa-solid fa-bolt"></i> Recomendaciones de Ensamblaje Eficiente
                 </h4>
-                <ul id="modal-recommendation-list" class="space-y-3 text-sm text-slate-300 mt-3"></ul>
+                <div id="modal-recommendation-list" class="space-y-3"></div>
             </div>
 
             <div class="overflow-auto flex-1 p-5">
@@ -221,15 +221,12 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // DETECCIÓN DE ETIQUETA "SOLO RECIBIR" (ClickUp tags + fallback texto)
         function checkSoloRecibir(task) {
-            // 1. Revisar array de tags de ClickUp
             if (task.tags && Array.isArray(task.tags)) {
                 if (task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"))) {
                     return true;
                 }
             }
-            // 2. Revisar título o descripción
             const fullText = ((task.name || '') + ' ' + (task.description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return fullText.includes("solo recibir");
         }
@@ -291,8 +288,6 @@
             return rawTasks.map(task => {
                 const esSoloRecibir = checkSoloRecibir(task);
                 const unidadesBrutas = parseDispositivos(task);
-                
-                // SI ES SOLO RECIBIR -> 0 UNIDADES PARA PRODUCCIÓN DE SALIDA
                 const unidadesContables = esSoloRecibir ? 0 : unidadesBrutas;
                 
                 const modeloInfo = parseModelo(task.name);
@@ -334,36 +329,53 @@
             }
         }
 
+        // --- MOTOR MEJORADO DE BATCHING (LEAN MANUFACTURING) ---
         function checkBatchingRecommendations() {
-            let todayCounts = {};
-            let futureThisWeekCounts = {};
+            let modelsData = {};
             
             window.allTasks.forEach(task => {
-                if (task.esSoloRecibir) return; // Ignorar material de recepción
+                if (task.esSoloRecibir) return; 
                 if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
                 if (!task.dateInfo.isThisWeek) return; 
                 
                 const model = task.modeloInfo.nombre;
+                const modelHex = task.modeloInfo.hex;
                 if (model === 'Otro' || model === 'Gateway') return;
                 
+                if (!modelsData[model]) {
+                    modelsData[model] = { todayUnits: 0, futureUnits: 0, futureTickets: [], hex: modelHex };
+                }
+
                 if (task.dateInfo.isTodayOrOverdue) {
-                    todayCounts[model] = (todayCounts[model] || 0) + task.unidades;
+                    modelsData[model].todayUnits += task.unidades;
                 } else if (task.dateInfo.isLaterThisWeek) {
-                    futureThisWeekCounts[model] = (futureThisWeekCounts[model] || 0) + task.unidades;
+                    modelsData[model].futureUnits += task.unidades;
+                    // Guardamos qué tickets exactos hay que adelantar
+                    modelsData[model].futureTickets.push(`${task.nombre} (${task.unidades} uds)`);
                 }
             });
 
             let suggestions = [];
-            for (const [model, todayTotal] of Object.entries(todayCounts)) {
-                if (futureThisWeekCounts[model] && futureThisWeekCounts[model] > 0) {
-                    const futureTotal = futureThisWeekCounts[model];
-                    const batchTotal = todayTotal + futureTotal;
+            for (const [model, data] of Object.entries(modelsData)) {
+                if (data.todayUnits > 0 && data.futureUnits > 0) {
+                    const batchTotal = data.todayUnits + data.futureUnits;
                     
+                    // Generar HTML de los tickets a adelantar
+                    const ticketsHtml = data.futureTickets.map(t => 
+                        `<span class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-ticket text-slate-500"></i> ${t}</span>`
+                    ).join('');
+
                     suggestions.push(`
-                        <li class="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
-                            Tienes <strong>${todayTotal}</strong> ${model} para hoy y <strong>${futureTotal}</strong> para el resto de la semana.<br>
-                            <span class="text-amber-400 mt-2 inline-block">👉 <strong>Sugerencia:</strong> Ensambla un lote único de <strong>${batchTotal} unidades</strong> hoy para evitar cambios de configuración (setup) en las mesas.</span>
-                        </li>
+                        <div class="bg-slate-800/60 p-4 rounded-xl border border-amber-500/30 mb-3 shadow-inner">
+                            <div class="flex items-center gap-3 mb-2 flex-wrap">
+                                <span class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote Óptimo: ${model}</span>
+                                <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar: <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base ml-1">Lote de ${batchTotal} uds</strong></span>
+                            </div>
+                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-700 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas, trae a producción hoy estos tickets del resto de la semana:</p>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                ${ticketsHtml}
+                            </div>
+                        </div>
                     `);
                 }
             }
@@ -439,7 +451,6 @@
             let statsEstados = {};
 
             window.allTasks.forEach(t => {
-                // Si es solo recibir, no suma a la carga de trabajo de producción
                 if (!t.esSoloRecibir) {
                     if (t.dateInfo.isThisWeek) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
