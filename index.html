@@ -141,8 +141,8 @@
         <!-- TABLA PRINCIPAL DATOS CRUDOS -->
         <section class="bi-panel overflow-hidden flex flex-col h-[500px]">
             <div class="p-4 border-b border-slate-800 bg-slate-900 flex justify-between items-center">
-                <h2 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-list-check text-slate-400 mr-2"></i> Todos los Tiquets</h2>
-                <span id="task-count-badge" class="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs rounded-md border border-slate-700 font-mono">0 ROWS</span>
+                <h2 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-list-check text-slate-400 mr-2"></i> Tiquets Activos (No completados)</h2>
+                <span id="task-count-badge" class="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs rounded-md border border-slate-700 font-mono">0 ACTIVOS</span>
             </div>
             
             <div class="overflow-auto flex-1 relative">
@@ -305,7 +305,6 @@
                 const dateInfo = parseFechas(task.due_date);
                 const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
                 
-                // Extraer todas las etiquetas (tags)
                 const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
                     ? task.tags.map(t => t.name.toUpperCase()) 
                     : [];
@@ -320,7 +319,7 @@
                     estado: estado,
                     estadoColor: task.status ? task.status.color : '#64748b',
                     dateInfo: dateInfo,
-                    etiquetas: arrayEtiquetas, // Nuevo array de etiquetas
+                    etiquetas: arrayEtiquetas,
                     timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
                     prioridadNum: prioridad
                 };
@@ -345,7 +344,6 @@
             }
         }
 
-        // MOTOR DE RECOMENDACIONES
         function checkBatchingRecommendations() {
             let modelsData = {};
             
@@ -404,7 +402,6 @@
             return suggestions;
         }
 
-        // RENDERIZAR GRÁFICOS (AHORA INCLUYE ETIQUETAS)
         function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEtiquetas) {
             if(charts.modelos) charts.modelos.destroy();
             if(charts.tiempos) charts.tiempos.destroy();
@@ -440,7 +437,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
-            // NUEVO GRÁFICO DE ETIQUETAS
             const ctxEtiquetas = document.getElementById('chartEtiquetas').getContext('2d');
             charts.etiquetas = new Chart(ctxEtiquetas, {
                 type: 'bar',
@@ -449,7 +445,7 @@
                     datasets: [{
                         label: 'Tiquets por Etiqueta',
                         data: Object.values(agrupacionEtiquetas),
-                        backgroundColor: '#8b5cf6', // Color Purple
+                        backgroundColor: '#8b5cf6',
                         borderRadius: 4
                     }]
                 },
@@ -465,7 +461,7 @@
             
             let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Gateway': 0, 'Otro': 0 };
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Próx. 7 Días Lab.': 0, 'Futuro': 0, 'Sin Fecha': 0 };
-            let statsEtiquetas = {}; // Agrupador de Etiquetas
+            let statsEtiquetas = {}; 
 
             window.allTasks.forEach(t => {
                 if (!t.esSoloRecibir) {
@@ -488,7 +484,6 @@
 
                 if (t.estado === 'EN CURSO') enCursoCount++;
 
-                // Llenar agrupador de Etiquetas para el gráfico
                 if (t.etiquetas.length > 0) {
                     t.etiquetas.forEach(tag => {
                         statsEtiquetas[tag] = (statsEtiquetas[tag] || 0) + 1;
@@ -507,8 +502,10 @@
             document.getElementById('mod-pro').innerText = statsModelos['Ixotrack pro'];
             document.getElementById('mod-m10').innerText = statsModelos['IxotrackproM10'];
             document.getElementById('mod-m10lr').innerText = statsModelos['IxotrackproM10LR'];
-
-            document.getElementById('task-count-badge').innerText = `${window.allTasks.length} ROWS`;
+            
+            // Calculamos visualmente cuántos tickets NO están listos para la chapa de la tabla
+            const activeTicketsCount = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO').length;
+            document.getElementById('task-count-badge').innerText = `${activeTicketsCount} ACTIVOS`;
             
             checkBatchingRecommendations();
             renderMainTable();
@@ -521,19 +518,21 @@
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
             
-            if (window.allTasks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tiquets activos en la Base de Datos.</td></tr>';
+            // FILTRO VISUAL: Ocultar los tickets que ya están LISTOS o COMPLETADOS de la tabla principal
+            const visibleTasks = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO');
+            
+            if (visibleTasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tiquets activos (no completados) en la Base de Datos.</td></tr>';
                 return;
             }
 
-            window.allTasks.forEach(task => {
+            visibleTasks.forEach(task => {
                 const f = new Date(task.timestamp);
                 const fechaText = task.timestamp === 9999999999999 ? 'No Deadline' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
                 
                 let highlightClass = '';
                 if(task.dateInfo.isTodayOrOverdue && !task.esSoloRecibir) highlightClass = 'text-amber-400 font-semibold';
                 
-                // Generar HTML visual para las Etiquetas del tiquet
                 let etiquetasHtml = '';
                 if (task.etiquetas.length > 0) {
                     etiquetasHtml = task.etiquetas.map(tag => `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">${tag}</span>`).join('');
