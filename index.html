@@ -59,7 +59,7 @@
         <!-- KPIs PRINCIPALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Semana -->
-            <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks.filter(t => t.dateInfo.isThisWeek))" class="bi-kpi-card rounded-xl p-5 relative group">
+            <div onclick="openModal('A Fabricar (Esta Semana)', window.allTasks.filter(t => t.dateInfo.isThisWeek && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">A Fabricar (Esta Semana)</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-semana" class="text-3xl font-bold text-white">0</h2>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Hoy -->
-            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
                 <div class="flex justify-between items-start">
                     <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
                         A Fabricar (Hoy)
@@ -84,7 +84,7 @@
             </div>
 
             <!-- En Curso -->
-            <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO'))" class="bi-kpi-card rounded-xl p-5 relative group">
+            <div onclick="openModal('Dispositivos en Curso', window.allTasks.filter(t => t.estado === 'EN CURSO' && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Dispositivos en Curso</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-encurso" class="text-3xl font-bold text-emerald-400">0</h2>
@@ -120,19 +120,19 @@
 
         <!-- CAJAS NUMÉRICAS DE MODELOS -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack'))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('Ixotrack', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-emerald"></div><span class="text-sm font-medium">Ixotrack</span></div>
                 <span id="mod-ixo" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('Ixotrack pro', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro'))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('Ixotrack pro', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-blue"></div><span class="text-sm font-medium">Ixotrack pro</span></div>
                 <span id="mod-pro" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10'))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('IxotrackproM10', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-700"></div><span class="text-sm font-medium">IxotrackproM10</span></div>
                 <span id="mod-m10" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10LR', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR'))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('IxotrackproM10LR', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-purple"></div><span class="text-sm font-medium">IxotrackproM10LR</span></div>
                 <span id="mod-m10lr" class="text-xl font-bold text-white">0</span>
             </div>
@@ -221,6 +221,19 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
+        // DETECCIÓN DE ETIQUETA "SOLO RECIBIR" (ClickUp tags + fallback texto)
+        function checkSoloRecibir(task) {
+            // 1. Revisar array de tags de ClickUp
+            if (task.tags && Array.isArray(task.tags)) {
+                if (task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"))) {
+                    return true;
+                }
+            }
+            // 2. Revisar título o descripción
+            const fullText = ((task.name || '') + ' ' + (task.description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return fullText.includes("solo recibir");
+        }
+
         function parseDispositivos(task) {
             if (task.description) {
                 const matchDesc = task.description.match(/Nº\s*dispositivos:\s*(\d+)/i);
@@ -233,7 +246,6 @@
             return 1; 
         }
 
-        // DETECCIÓN MEJORADA DE GATEWAYS Y ANTENAS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
@@ -251,7 +263,6 @@
             return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
         }
 
-        // MOTOR DE FECHAS ESTANCO
         function parseFechas(timestamp) {
             if (!timestamp || timestamp === 9999999999999) {
                 return { isTodayOrOverdue: false, isLaterThisWeek: false, isThisWeek: false, category: 'Sin Fecha' };
@@ -278,7 +289,12 @@
 
         function normalizeTasks(rawTasks) {
             return rawTasks.map(task => {
-                const unidades = parseDispositivos(task);
+                const esSoloRecibir = checkSoloRecibir(task);
+                const unidadesBrutas = parseDispositivos(task);
+                
+                // SI ES SOLO RECIBIR -> 0 UNIDADES PARA PRODUCCIÓN DE SALIDA
+                const unidadesContables = esSoloRecibir ? 0 : unidadesBrutas;
+                
                 const modeloInfo = parseModelo(task.name);
                 const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
                 const dateInfo = parseFechas(task.due_date);
@@ -287,7 +303,9 @@
                 return {
                     id: task.id,
                     nombre: task.name,
-                    unidades: unidades,
+                    unidades: unidadesContables,
+                    unidadesBrutas: unidadesBrutas,
+                    esSoloRecibir: esSoloRecibir,
                     modeloInfo: modeloInfo,
                     estado: estado,
                     estadoColor: task.status ? task.status.color : '#64748b',
@@ -316,15 +334,13 @@
             }
         }
 
-        // SUGERENCIAS DE PRODUCCIÓN EXACTAS
         function checkBatchingRecommendations() {
             let todayCounts = {};
             let futureThisWeekCounts = {};
             
             window.allTasks.forEach(task => {
-                // Si la tarea ya está completada o lista, no recomendamos fabricarla
+                if (task.esSoloRecibir) return; // Ignorar material de recepción
                 if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
-                
                 if (!task.dateInfo.isThisWeek) return; 
                 
                 const model = task.modeloInfo.nombre;
@@ -423,18 +439,21 @@
             let statsEstados = {};
 
             window.allTasks.forEach(t => {
-                if (t.dateInfo.isThisWeek) totalSemana += t.unidades;
-                if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
-                
-                // GATEWAYS: SOLO SUMA SI ESTÁN EN ESTADO 'LISTO'
-                if (t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO') {
-                    totalGWListos += t.unidades;
+                // Si es solo recibir, no suma a la carga de trabajo de producción
+                if (!t.esSoloRecibir) {
+                    if (t.dateInfo.isThisWeek) totalSemana += t.unidades;
+                    if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
+                    
+                    if (statsModelos[t.modeloInfo.nombre] !== undefined) {
+                        statsModelos[t.modeloInfo.nombre] += t.unidades;
+                    }
+                    statsTiempos[t.dateInfo.category] += t.unidades;
                 }
 
-                if (statsModelos[t.modeloInfo.nombre] !== undefined) {
-                    statsModelos[t.modeloInfo.nombre] += t.unidades;
+                if (t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO') {
+                    totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
-                statsTiempos[t.dateInfo.category] += t.unidades;
+
                 statsEstados[t.estado] = (statsEstados[t.estado] || 0) + 1;
             });
 
@@ -471,12 +490,17 @@
                 const fechaText = task.timestamp === 9999999999999 ? 'No Deadline' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
                 
                 let highlightClass = '';
-                if(task.dateInfo.isTodayOrOverdue) highlightClass = 'text-amber-400 font-semibold';
+                if(task.dateInfo.isTodayOrOverdue && !task.esSoloRecibir) highlightClass = 'text-amber-400 font-semibold';
                 
                 tbody.innerHTML += `
-                    <tr class="table-row-hover border-b border-slate-800 transition-colors">
+                    <tr class="table-row-hover border-b border-slate-800 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
                         <td class="py-3 px-4">
-                            ${task.prioridadNum === 1 ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgent</span>' : '<span class="text-slate-500 text-xs">Normal</span>'}
+                            ${task.esSoloRecibir 
+                                ? '<span class="px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>'
+                                : (task.prioridadNum === 1 
+                                    ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgent</span>' 
+                                    : '<span class="text-slate-500 text-xs">Normal</span>')
+                            }
                         </td>
                         <td class="py-3 px-4 font-medium text-slate-300 text-xs">${task.nombre}</td>
                         <td class="py-3 px-4">
@@ -484,7 +508,9 @@
                                 <span class="w-2 h-2 rounded-full" style="background-color: ${task.modeloInfo.hex}"></span>${task.modeloInfo.nombre}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center font-bold text-white text-sm">${task.unidades}</td>
+                        <td class="py-3 px-4 text-center font-bold text-sm ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
+                            ${task.esSoloRecibir ? `0 (${task.unidadesBrutas})` : task.unidades}
+                        </td>
                         <td class="py-3 px-4">
                             <span class="px-2 py-0.5 text-[9px] rounded font-bold uppercase tracking-wider" style="background-color: ${task.estadoColor}15; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}30">
                                 ${task.estado}
@@ -545,10 +571,12 @@
                 const fechaText = t.timestamp === 9999999999999 ? '-' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
                 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50">
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir ? 'opacity-60' : ''}">
                         <td class="py-3 pr-4 font-medium text-slate-300 text-xs">${t.nombre}</td>
                         <td class="py-3 px-4"><span class="flex items-center gap-2 text-[11px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
-                        <td class="py-3 px-4 text-center font-bold text-white text-sm">${t.unidades}</td>
+                        <td class="py-3 px-4 text-center font-bold text-sm ${t.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
+                            ${t.esSoloRecibir ? `0 (${t.unidadesBrutas})` : t.unidades}
+                        </td>
                         <td class="py-3 pl-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
                     </tr>
                 `;
