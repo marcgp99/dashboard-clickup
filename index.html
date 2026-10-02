@@ -149,7 +149,7 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 bg-slate-900 shadow-md z-10">
                         <tr class="text-xs text-slate-400 uppercase tracking-wider">
-                            <th class="py-3 px-4 cursor-pointer hover:text-white w-20" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white w-24" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                             <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Tiquet / Cliente / <span class="text-brand-purple">Etiquetas</span> <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                             <th class="py-3 px-4 cursor-pointer hover:text-white w-32" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                             <th class="py-3 px-4 cursor-pointer hover:text-white text-center w-20" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
@@ -221,6 +221,7 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
+        // DETECCIÓN DE ETIQUETA "SOLO RECIBIR"
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 if (task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"))) {
@@ -229,6 +230,39 @@
             }
             const fullText = ((task.name || '') + ' ' + (task.description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return fullText.includes("solo recibir");
+        }
+
+        // ASIGNADOR DE COLORES PARA ETIQUETAS
+        function getTagHtml(tag) {
+            const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (t.includes("REEMPLAZO")) {
+                return `<span class="inline-block bg-red-500/20 text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+            } else if (t.includes("SOLO RECIBIR")) {
+                return `<span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+            } else if (t.includes("ENVIO")) {
+                return `<span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+            }
+            // Etiqueta por defecto (morado)
+            return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+        }
+
+        // ASIGNADOR DE COLORES PARA PRIORIDAD
+        function getPriorityHtml(task) {
+            if (task.esSoloRecibir) {
+                return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>';
+            }
+            
+            // Si tiene etiqueta de envío, también la pintamos verde en prioridad
+            const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
+            if (hasEnvio) {
+                return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-truck-fast mr-1"></i>Envíos</span>';
+            }
+            
+            if (task.prioridadNum === 1) {
+                return '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgente</span>';
+            }
+            
+            return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-minus mr-1"></i>Normal</span>';
         }
 
         function parseDispositivos(task) {
@@ -503,7 +537,6 @@
             document.getElementById('mod-m10').innerText = statsModelos['IxotrackproM10'];
             document.getElementById('mod-m10lr').innerText = statsModelos['IxotrackproM10LR'];
             
-            // Calculamos visualmente cuántos tickets NO están listos para la chapa de la tabla
             const activeTicketsCount = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO').length;
             document.getElementById('task-count-badge').innerText = `${activeTicketsCount} ACTIVOS`;
             
@@ -518,7 +551,6 @@
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
             
-            // FILTRO VISUAL: Ocultar los tickets que ya están LISTOS o COMPLETADOS de la tabla principal
             const visibleTasks = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO');
             
             if (visibleTasks.length === 0) {
@@ -535,18 +567,13 @@
                 
                 let etiquetasHtml = '';
                 if (task.etiquetas.length > 0) {
-                    etiquetasHtml = task.etiquetas.map(tag => `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">${tag}</span>`).join('');
+                    etiquetasHtml = task.etiquetas.map(getTagHtml).join('');
                 }
 
                 tbody.innerHTML += `
                     <tr class="table-row-hover border-b border-slate-800 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
                         <td class="py-3 px-4 align-top pt-4">
-                            ${task.esSoloRecibir 
-                                ? '<span class="px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>'
-                                : (task.prioridadNum === 1 
-                                    ? '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgent</span>' 
-                                    : '<span class="text-slate-500 text-xs">Normal</span>')
-                            }
+                            ${getPriorityHtml(task)}
                         </td>
                         <td class="py-3 px-4">
                             <div class="font-medium text-slate-300 text-xs mb-1.5">${task.nombre}</div>
@@ -621,14 +648,14 @@
                 
                 let etiquetasHtml = '';
                 if (t.etiquetas.length > 0) {
-                    etiquetasHtml = t.etiquetas.map(tag => `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.5 rounded text-[8px] font-bold mr-1 mt-1">${tag}</span>`).join('');
+                    etiquetasHtml = t.etiquetas.map(getTagHtml).join('');
                 }
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir ? 'opacity-60' : ''}">
                         <td class="py-3 pr-4">
                             <div class="font-medium text-slate-300 text-xs">${t.nombre}</div>
-                            <div>${etiquetasHtml}</div>
+                            <div class="flex flex-wrap gap-1 mt-1">${etiquetasHtml}</div>
                         </td>
                         <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
                         <td class="py-3 px-4 align-top pt-4 text-center font-bold text-sm ${t.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
