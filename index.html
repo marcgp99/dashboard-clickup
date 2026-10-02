@@ -109,12 +109,12 @@
                 <div class="w-full h-48 relative"><canvas id="chartModelos"></canvas></div>
             </div>
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Proyección Carga de Trabajo (L-V)</h3>
+                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Proyección Carga (L-V)</h3>
                 <div class="w-full h-48 relative"><canvas id="chartTiempos"></canvas></div>
             </div>
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Estado de Tiquets</h3>
-                <div class="w-full h-48 relative"><canvas id="chartEstados"></canvas></div>
+                <h3 class="text-xs font-semibold text-brand-purple uppercase tracking-wider mb-4 w-full text-left flex items-center gap-2"><i class="fa-solid fa-tags"></i> Distribución por Etiquetas</h3>
+                <div class="w-full h-48 relative"><canvas id="chartEtiquetas"></canvas></div>
             </div>
         </div>
 
@@ -149,12 +149,12 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 bg-slate-900 shadow-md z-10">
                         <tr class="text-xs text-slate-400 uppercase tracking-wider">
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Tiquet / Cliente <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white text-center" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('fecha')">Fecha Límite <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white w-20" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Tiquet / Cliente / <span class="text-brand-purple">Etiquetas</span> <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white w-32" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white text-center w-20" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('fecha')">Deadline <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                         </tr>
                     </thead>
                     <tbody id="main-table-body" class="divide-y divide-slate-800">
@@ -192,7 +192,7 @@
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 bg-slate-900">
                         <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
-                            <th class="pb-3 pr-4">Tiquet</th>
+                            <th class="pb-3 pr-4">Tiquet / Etiquetas</th>
                             <th class="pb-3 px-4">Modelo</th>
                             <th class="pb-3 px-4 text-center">Uds</th>
                             <th class="pb-3 pl-4 text-right">Deadline</th>
@@ -305,6 +305,11 @@
                 const dateInfo = parseFechas(task.due_date);
                 const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
                 
+                // Extraer todas las etiquetas (tags)
+                const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
+                    ? task.tags.map(t => t.name.toUpperCase()) 
+                    : [];
+
                 return {
                     id: task.id,
                     nombre: task.name,
@@ -315,6 +320,7 @@
                     estado: estado,
                     estadoColor: task.status ? task.status.color : '#64748b',
                     dateInfo: dateInfo,
+                    etiquetas: arrayEtiquetas, // Nuevo array de etiquetas
                     timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
                     prioridadNum: prioridad
                 };
@@ -339,14 +345,13 @@
             }
         }
 
-        // MOTOR DE RECOMENDACIONES DESBLOQUEADO
+        // MOTOR DE RECOMENDACIONES
         function checkBatchingRecommendations() {
             let modelsData = {};
             
             window.allTasks.forEach(task => {
                 if (task.esSoloRecibir) return; 
                 if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
-                
                 if (!task.dateInfo.isWithinWindow) return; 
                 
                 const model = task.modeloInfo.nombre;
@@ -367,8 +372,6 @@
 
             let suggestions = [];
             for (const [model, data] of Object.entries(modelsData)) {
-                // NUEVA REGLA: Sugerir SIEMPRE que haya trabajo futuro en los próximos 7 días, 
-                // incluso si HOY hay 0 unidades urgentes.
                 if (data.futureUnits > 0) {
                     const batchTotal = data.todayUnits + data.futureUnits;
                     
@@ -401,10 +404,11 @@
             return suggestions;
         }
 
-        function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEstados) {
+        // RENDERIZAR GRÁFICOS (AHORA INCLUYE ETIQUETAS)
+        function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEtiquetas) {
             if(charts.modelos) charts.modelos.destroy();
             if(charts.tiempos) charts.tiempos.destroy();
-            if(charts.estados) charts.estados.destroy();
+            if(charts.etiquetas) charts.etiquetas.destroy();
 
             const ctxModelos = document.getElementById('chartModelos').getContext('2d');
             charts.modelos = new Chart(ctxModelos, {
@@ -436,15 +440,16 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
-            const ctxEstados = document.getElementById('chartEstados').getContext('2d');
-            charts.estados = new Chart(ctxEstados, {
+            // NUEVO GRÁFICO DE ETIQUETAS
+            const ctxEtiquetas = document.getElementById('chartEtiquetas').getContext('2d');
+            charts.etiquetas = new Chart(ctxEtiquetas, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(agrupacionEstados),
+                    labels: Object.keys(agrupacionEtiquetas),
                     datasets: [{
-                        label: 'Tiquets',
-                        data: Object.values(agrupacionEstados),
-                        backgroundColor: '#8b5cf6',
+                        label: 'Tiquets por Etiqueta',
+                        data: Object.values(agrupacionEtiquetas),
+                        backgroundColor: '#8b5cf6', // Color Purple
                         borderRadius: 4
                     }]
                 },
@@ -456,10 +461,11 @@
             let totalSemana = 0;
             let totalHoy = 0;
             let totalGWListos = 0;
+            let enCursoCount = 0;
             
             let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Gateway': 0, 'Otro': 0 };
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Próx. 7 Días Lab.': 0, 'Futuro': 0, 'Sin Fecha': 0 };
-            let statsEstados = {};
+            let statsEtiquetas = {}; // Agrupador de Etiquetas
 
             window.allTasks.forEach(t => {
                 if (!t.esSoloRecibir) {
@@ -480,12 +486,21 @@
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
 
-                statsEstados[t.estado] = (statsEstados[t.estado] || 0) + 1;
+                if (t.estado === 'EN CURSO') enCursoCount++;
+
+                // Llenar agrupador de Etiquetas para el gráfico
+                if (t.etiquetas.length > 0) {
+                    t.etiquetas.forEach(tag => {
+                        statsEtiquetas[tag] = (statsEtiquetas[tag] || 0) + 1;
+                    });
+                } else {
+                    statsEtiquetas['SIN ETIQUETA'] = (statsEtiquetas['SIN ETIQUETA'] || 0) + 1;
+                }
             });
 
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
-            document.getElementById('kpi-encurso').innerText = statsEstados['EN CURSO'] || 0;
+            document.getElementById('kpi-encurso').innerText = enCursoCount;
             document.getElementById('kpi-gw').innerText = totalGWListos;
 
             document.getElementById('mod-ixo').innerText = statsModelos['Ixotrack'];
@@ -499,7 +514,7 @@
             renderMainTable();
             
             Object.keys(statsModelos).forEach(k => { if(statsModelos[k] === 0) delete statsModelos[k]; });
-            renderCharts(statsModelos, statsTiempos, statsEstados);
+            renderCharts(statsModelos, statsTiempos, statsEtiquetas);
         }
 
         function renderMainTable() {
@@ -518,9 +533,15 @@
                 let highlightClass = '';
                 if(task.dateInfo.isTodayOrOverdue && !task.esSoloRecibir) highlightClass = 'text-amber-400 font-semibold';
                 
+                // Generar HTML visual para las Etiquetas del tiquet
+                let etiquetasHtml = '';
+                if (task.etiquetas.length > 0) {
+                    etiquetasHtml = task.etiquetas.map(tag => `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1">${tag}</span>`).join('');
+                }
+
                 tbody.innerHTML += `
                     <tr class="table-row-hover border-b border-slate-800 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
-                        <td class="py-3 px-4">
+                        <td class="py-3 px-4 align-top pt-4">
                             ${task.esSoloRecibir 
                                 ? '<span class="px-2 py-0.5 bg-slate-800 text-slate-400 border border-slate-700 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>'
                                 : (task.prioridadNum === 1 
@@ -528,21 +549,24 @@
                                     : '<span class="text-slate-500 text-xs">Normal</span>')
                             }
                         </td>
-                        <td class="py-3 px-4 font-medium text-slate-300 text-xs">${task.nombre}</td>
                         <td class="py-3 px-4">
+                            <div class="font-medium text-slate-300 text-xs mb-1.5">${task.nombre}</div>
+                            <div class="flex flex-wrap gap-1">${etiquetasHtml}</div>
+                        </td>
+                        <td class="py-3 px-4 align-top pt-4">
                             <span class="inline-flex items-center gap-1.5 text-xs text-slate-300">
                                 <span class="w-2 h-2 rounded-full" style="background-color: ${task.modeloInfo.hex}"></span>${task.modeloInfo.nombre}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center font-bold text-sm ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
+                        <td class="py-3 px-4 text-center align-top pt-4 font-bold text-sm ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
                             ${task.esSoloRecibir ? `0 (${task.unidadesBrutas})` : task.unidades}
                         </td>
-                        <td class="py-3 px-4">
+                        <td class="py-3 px-4 align-top pt-4">
                             <span class="px-2 py-0.5 text-[9px] rounded font-bold uppercase tracking-wider" style="background-color: ${task.estadoColor}15; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}30">
                                 ${task.estado}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-xs ${highlightClass} font-mono">${fechaText}</td>
+                        <td class="py-3 px-4 align-top pt-4 text-xs ${highlightClass} font-mono">${fechaText}</td>
                     </tr>
                 `;
             });
@@ -596,14 +620,22 @@
                 const f = new Date(t.timestamp);
                 const fechaText = t.timestamp === 9999999999999 ? '-' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
                 
+                let etiquetasHtml = '';
+                if (t.etiquetas.length > 0) {
+                    etiquetasHtml = t.etiquetas.map(tag => `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.5 rounded text-[8px] font-bold mr-1 mt-1">${tag}</span>`).join('');
+                }
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir ? 'opacity-60' : ''}">
-                        <td class="py-3 pr-4 font-medium text-slate-300 text-xs">${t.nombre}</td>
-                        <td class="py-3 px-4"><span class="flex items-center gap-2 text-[11px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
-                        <td class="py-3 px-4 text-center font-bold text-sm ${t.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
+                        <td class="py-3 pr-4">
+                            <div class="font-medium text-slate-300 text-xs">${t.nombre}</div>
+                            <div>${etiquetasHtml}</div>
+                        </td>
+                        <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
+                        <td class="py-3 px-4 align-top pt-4 text-center font-bold text-sm ${t.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
                             ${t.esSoloRecibir ? `0 (${t.unidadesBrutas})` : t.unidades}
                         </td>
-                        <td class="py-3 pl-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
+                        <td class="py-3 pl-4 align-top pt-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
                     </tr>
                 `;
             });
