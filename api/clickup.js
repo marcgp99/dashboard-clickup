@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   try {
     // Usamos el endpoint para buscar tareas dentro de una carpeta específica
-    const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=false`, {
+    const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=true`, {
       method: 'GET',
       headers: {
         'Authorization': apiKey,
