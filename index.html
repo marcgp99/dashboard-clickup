@@ -93,7 +93,7 @@
             </div>
 
             <!-- Gateways LISTOS -->
-            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO'))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
+            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && ['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">GW Reemplazados</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-gw" class="text-3xl font-bold text-orange-400">0</h2>
@@ -221,7 +221,7 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // SOLUCIÓN ESTRICTA: Sólo busca en las etiquetas de ClickUp
+        // 1. REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags)
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 return task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"));
@@ -229,14 +229,14 @@
             return false;
         }
 
-        // ASIGNADOR DE COLORES PARA ETIQUETAS (Texto y Gráficos)
+        // ASIGNADOR DE COLORES PARA ETIQUETAS
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) return '#ef4444'; // Rojo
             if (t.includes("SOLO RECIBIR")) return '#10b981'; // Verde
             if (t.includes("ENVIO")) return '#3b82f6'; // Azul
             if (t.includes("SIN ETIQUETA")) return '#64748b'; // Gris
-            return '#8b5cf6'; // Morado por defecto (Ventas, etc.)
+            return '#8b5cf6'; // Morado
         }
 
         function getTagHtml(tag) {
@@ -251,21 +251,18 @@
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
-        // ASIGNADOR DE COLORES PARA PRIORIDAD
+        // ASIGNADOR DE PRIORIDADES VISUAL
         function getPriorityHtml(task) {
             if (task.esSoloRecibir) {
                 return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>';
             }
-            
             const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
             if (hasEnvio) {
                 return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-truck-fast mr-1"></i>Envíos</span>';
             }
-            
             if (task.prioridadNum === 1) {
                 return '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgente</span>';
             }
-            
             return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-minus mr-1"></i>Normal</span>';
         }
 
@@ -281,6 +278,7 @@
             return 1; 
         }
 
+        // 2. BUSCADOR INTELIGENTE DE MODELOS (GATEWAYS INCLUIDOS)
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
@@ -288,7 +286,6 @@
             if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
                 return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
             }
-            
             if (taskName.includes('🟩')) return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
             if (taskName.includes('🟪')) return { nombre: 'IxotrackproM10LR', color: 'purple', hex: '#8b5cf6' };
             if (taskName.includes('🟦')) {
@@ -364,10 +361,9 @@
             });
         }
 
-        // FUNCIÓN ACTUALIZADA: SISTEMA ANTI-CACHÉ
         async function fetchClickUpData() {
             try {
-                // Añade el parámetro de tiempo para burlar la caché de Vercel y del navegador
+                // TRUCO ANTI-CACHÉ (Para que siempre pida datos frescos a Vercel)
                 const urlPeticion = '/api/clickup?t=' + new Date().getTime();
                 const response = await fetch(urlPeticion, { cache: 'no-store' });
                 
@@ -391,7 +387,7 @@
             
             window.allTasks.forEach(task => {
                 if (task.esSoloRecibir) return; 
-                if (task.estado === 'LISTO' || task.estado === 'COMPLETADO') return;
+                if (['LISTO', 'COMPLETADO', 'CERRADO'].includes(task.estado)) return;
                 if (!task.dateInfo.isWithinWindow) return; 
                 
                 const model = task.modeloInfo.nombre;
@@ -523,7 +519,8 @@
                     }
                 }
 
-                if (t.modeloInfo.nombre === 'Gateway' && t.estado === 'LISTO') {
+                // 3. AMPLITUD DEL ESTADO LISTO PARA GATEWAYS
+                if (t.modeloInfo.nombre === 'Gateway' && ['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
 
@@ -548,7 +545,7 @@
             document.getElementById('mod-m10').innerText = statsModelos['IxotrackproM10'];
             document.getElementById('mod-m10lr').innerText = statsModelos['IxotrackproM10LR'];
             
-            const activeTicketsCount = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO').length;
+            const activeTicketsCount = window.allTasks.filter(t => !['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)).length;
             document.getElementById('task-count-badge').innerText = `${activeTicketsCount} ACTIVOS`;
             
             checkBatchingRecommendations();
@@ -562,7 +559,7 @@
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
             
-            const visibleTasks = window.allTasks.filter(t => t.estado !== 'LISTO' && t.estado !== 'COMPLETADO');
+            const visibleTasks = window.allTasks.filter(t => !['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado));
             
             if (visibleTasks.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tiquets activos (no completados) en la Base de Datos.</td></tr>';
