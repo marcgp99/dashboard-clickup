@@ -221,7 +221,7 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // 1. REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags)
+        // 1. REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags), IGNORA TÍTULOS
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 return task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"));
@@ -278,7 +278,6 @@
             return 1; 
         }
 
-        // 2. BUSCADOR INTELIGENTE DE MODELOS (GATEWAYS INCLUIDOS)
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
@@ -519,12 +518,13 @@
                     }
                 }
 
-                // 3. AMPLITUD DEL ESTADO LISTO PARA GATEWAYS
                 if (t.modeloInfo.nombre === 'Gateway' && ['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
 
-                if (t.estado === 'EN CURSO') enCursoCount++;
+                if (t.estado === 'EN CURSO' && !t.esSoloRecibir) {
+                    enCursoCount++;
+                }
 
                 if (t.etiquetas.length > 0) {
                     t.etiquetas.forEach(tag => {
