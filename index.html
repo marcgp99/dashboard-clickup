@@ -37,14 +37,22 @@
 </head>
 <body class="text-slate-300 min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800">
+    <!-- HEADER BI CON INDICADOR DE RENDIMIENTO -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800 gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
                 <i class="fa-solid fa-chart-pie text-brand-blue"></i> Panel de Producción
             </h1>
             <p class="text-slate-500 text-sm mt-1">Inteligencia de Datos y Sincronización ClickUp</p>
         </div>
-        <div class="flex items-center gap-4 mt-4 md:mt-0">
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- BADGE SALIDA SEMANAL DE PRODUCCIÓN -->
+            <div class="flex items-center gap-2.5 bg-emerald-950/50 border border-emerald-500/30 px-3.5 py-1.5 rounded-lg text-xs text-emerald-400 font-semibold shadow-inner">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span>Salida Esta Sem: <strong id="header-output-week" class="text-white text-sm ml-1 font-mono">0</strong> uds</span>
+                <span id="header-output-var" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">0% vs sem. ant.</span>
+            </div>
+
             <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400">
                 <i class="fa-solid fa-clock"></i> <span id="last-update" class="font-mono text-emerald-400">Calculando...</span>
             </div>
@@ -102,8 +110,8 @@
             </div>
         </div>
 
-        <!-- GRÁFICOS BI -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- GRÁFICOS BI (4 COLUMNAS) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
                 <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Distribución por Modelo</h3>
                 <div class="w-full h-48 relative"><canvas id="chartModelos"></canvas></div>
@@ -115,6 +123,13 @@
             <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
                 <h3 class="text-xs font-semibold text-brand-purple uppercase tracking-wider mb-4 w-full text-left flex items-center gap-2"><i class="fa-solid fa-tags"></i> Distribución por Etiquetas</h3>
                 <div class="w-full h-48 relative"><canvas id="chartEtiquetas"></canvas></div>
+            </div>
+            <!-- NUEVO GRÁFICO HISTÓRICO DE SALIDA / PRODUCTIVIDAD -->
+            <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
+                <h3 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-4 w-full text-left flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column"></i> Salida Real (Últimas 4 Semanas)
+                </h3>
+                <div class="w-full h-48 relative"><canvas id="chartRendimiento"></canvas></div>
             </div>
         </div>
 
@@ -180,7 +195,7 @@
                 </button>
             </div>
 
-            <!-- NUEVO RESUMEN DE MODELOS EN EL MODAL -->
+            <!-- RESUMEN DE MODELOS EN EL MODAL -->
             <div id="modal-summary-models-box" class="bg-slate-900/90 border-b border-slate-800 p-4 px-5">
                 <div id="modal-summary-models-list" class="flex flex-wrap gap-2.5"></div>
             </div>
@@ -358,6 +373,15 @@
             return { isTodayOrOverdue, isFutureRolling, isWithinWindow, category };
         }
 
+        // MOTOR DE FECHAS PARA SALIDA DE PRODUCCIÓN (Semanas completadas)
+        function getWeekBoundaries(weeksAgo = 0) {
+            const now = new Date();
+            const day = now.getDay() || 7; // Lunes = 1, Domingo = 7
+            const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (day - 1) - (weeksAgo * 7), 0, 0, 0, 0);
+            const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6, 23, 59, 59, 999);
+            return { start: mon.getTime(), end: sun.getTime() };
+        }
+
         function normalizeTasks(rawTasks) {
             return rawTasks.map(task => {
                 const esSoloRecibir = checkSoloRecibir(task);
@@ -373,6 +397,9 @@
                     ? task.tags.map(t => t.name.toUpperCase()) 
                     : [];
 
+                // Fecha exacta en la que se completó
+                const closedTimestamp = task.date_closed ? parseInt(task.date_closed, 10) : (task.date_updated ? parseInt(task.date_updated, 10) : 0);
+
                 return {
                     id: task.id,
                     nombre: task.name,
@@ -385,6 +412,7 @@
                     dateInfo: dateInfo,
                     etiquetas: arrayEtiquetas,
                     timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
+                    closedTimestamp: closedTimestamp,
                     prioridadNum: prioridad
                 };
             });
@@ -468,10 +496,12 @@
             return suggestions;
         }
 
-        function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEtiquetas) {
+        // RENDERIZADO DE GRÁFICOS (INCLUYE RENDIMIENTO SEMANAL)
+        function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEtiquetas, historialProduccion) {
             if(charts.modelos) charts.modelos.destroy();
             if(charts.tiempos) charts.tiempos.destroy();
             if(charts.etiquetas) charts.etiquetas.destroy();
+            if(charts.rendimiento) charts.rendimiento.destroy();
 
             const ctxModelos = document.getElementById('chartModelos').getContext('2d');
             charts.modelos = new Chart(ctxModelos, {
@@ -520,6 +550,22 @@
                 },
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#1e293b' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
+
+            // GRÁFICO 4: RENDIMIENTO DE SALIDA SEMANAL
+            const ctxRendimiento = document.getElementById('chartRendimiento').getContext('2d');
+            charts.rendimiento = new Chart(ctxRendimiento, {
+                type: 'bar',
+                data: {
+                    labels: ['Sem -3', 'Sem -2', 'Sem Pasada', 'Esta Sem'],
+                    datasets: [{
+                        label: 'Unidades Fabricadas',
+                        data: historialProduccion,
+                        backgroundColor: ['#334155', '#334155', '#64748b', '#10b981'],
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+            });
         }
 
         function updateDashboard() {
@@ -532,9 +578,26 @@
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Próx. 7 Días Lab.': 0, 'Futuro': 0, 'Sin Fecha': 0 };
             let statsEtiquetas = {}; 
 
+            // CÁLCULO DE SALIDA REAL POR SEMANAS
+            const w0 = getWeekBoundaries(0); // Esta semana
+            const w1 = getWeekBoundaries(1); // Semana pasada
+            const w2 = getWeekBoundaries(2); // Hace 2 semanas
+            const w3 = getWeekBoundaries(3); // Hace 3 semanas
+
+            let outputW0 = 0, outputW1 = 0, outputW2 = 0, outputW3 = 0;
+
             window.allTasks.forEach(t => {
                 const completed = isTaskCompleted(t);
 
+                // Computar Salida de Producción Real (Sólo tiquets completados que NO eran Solo Recibir)
+                if (completed && !t.esSoloRecibir && t.closedTimestamp > 0) {
+                    if (t.closedTimestamp >= w0.start && t.closedTimestamp <= w0.end) outputW0 += t.unidadesBrutas;
+                    else if (t.closedTimestamp >= w1.start && t.closedTimestamp <= w1.end) outputW1 += t.unidadesBrutas;
+                    else if (t.closedTimestamp >= w2.start && t.closedTimestamp <= w2.end) outputW2 += t.unidadesBrutas;
+                    else if (t.closedTimestamp >= w3.start && t.closedTimestamp <= w3.end) outputW3 += t.unidadesBrutas;
+                }
+
+                // Trabajo Pendiente
                 if (!t.esSoloRecibir && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
@@ -568,6 +631,17 @@
                 }
             });
 
+            // Actualizar Header KPI
+            document.getElementById('header-output-week').innerText = outputW0;
+            const badgeVar = document.getElementById('header-output-var');
+            if (outputW1 > 0) {
+                const pct = Math.round(((outputW0 - outputW1) / outputW1) * 100);
+                badgeVar.innerText = `${pct >= 0 ? '+' : ''}${pct}% vs sem. ant.`;
+                badgeVar.className = `text-[10px] px-1.5 py-0.5 rounded font-mono ${pct >= 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}`;
+            } else {
+                badgeVar.innerText = `vs sem. ant. (${outputW1})`;
+            }
+
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
             document.getElementById('kpi-encurso').innerText = enCursoCount;
@@ -585,7 +659,7 @@
             renderMainTable();
             
             Object.keys(statsModelos).forEach(k => { if(statsModelos[k] === 0) delete statsModelos[k]; });
-            renderCharts(statsModelos, statsTiempos, statsEtiquetas);
+            renderCharts(statsModelos, statsTiempos, statsEtiquetas, [outputW3, outputW2, outputW1, outputW0]);
         }
 
         function renderMainTable() {
@@ -661,7 +735,6 @@
         function openModal(title, tasks, showRecommendations = false) {
             document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-filter text-brand-blue"></i> Filtro Activo: ${title}`;
             
-            // --- RESUMEN DE MODELOS EN EL MODAL ---
             const summaryContainer = document.getElementById('modal-summary-models-box');
             const summaryList = document.getElementById('modal-summary-models-list');
             
