@@ -11,10 +11,13 @@
             theme: { 
                 extend: { 
                     colors: { 
-                        slate: { 850: '#151e2e', 900: '#0f172a', 950: '#020617' },
+                        slate: { 850: '#131b2e', 900: '#0b1329', 950: '#020617' },
                         brand: { blue: '#3b82f6', emerald: '#10b981', purple: '#8b5cf6', amber: '#f59e0b', orange: '#f97316' }
                     },
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                    fontFamily: { 
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+                    }
                 } 
             }
         }
@@ -23,171 +26,289 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { background-color: #020617; }
-        .bi-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
-        .bi-kpi-card { background: linear-gradient(145deg, #0f172a 0%, #151e2e 100%); border: 1px solid #1e293b; transition: all 0.2s ease; cursor: pointer; }
-        .bi-kpi-card:hover { transform: translateY(-3px); border-color: #3b82f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
-        .table-row-hover:hover { background-color: #1e293b; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap');
+        
+        body { 
+            background: radial-gradient(circle at top center, #0f172a 0%, #020617 100%);
+            color: #cbd5e1;
+        }
+
+        /* EFECTOS GLASSMORPHISM Y GLOW INDUSTRIAL */
+        .bi-panel { 
+            background: rgba(15, 23, 42, 0.75); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07); 
+            border-radius: 14px; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4); 
+        }
+
+        .bi-kpi-card { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(21, 30, 46, 0.8) 100%); 
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer; 
+        }
+
+        .bi-kpi-card:hover { 
+            transform: translateY(-4px); 
+            border-color: #3b82f6; 
+            box-shadow: 0 12px 20px -3px rgba(59, 130, 246, 0.25); 
+        }
+
+        .glow-amber {
+            border-left: 4px solid #f59e0b !important;
+            box-shadow: -4px 0 20px -2px rgba(245, 158, 11, 0.3) !important;
+        }
+
+        .glow-orange {
+            border-left: 4px solid #f97316 !important;
+            box-shadow: -4px 0 20px -2px rgba(249, 115, 22, 0.3) !important;
+        }
+
+        .table-row-hover {
+            transition: background-color 0.15s ease;
+        }
+        .table-row-hover:hover { 
+            background-color: rgba(30, 41, 59, 0.7); 
+        }
+
+        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: #0b1329; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* TABS ACTIVAS */
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+        }
     </style>
 </head>
-<body class="text-slate-300 min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
+<body class="min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
-    <!-- HEADER BI CON INDICADOR DE RENDIMIENTO SOBRE CAPACIDAD -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800 gap-4">
+    <!-- HEADER BI HIGH-TECH CON MONITOR DE CAPACIDAD OBJETIVO -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
-                <i class="fa-solid fa-chart-pie text-brand-blue"></i> Panel de Producción
-            </h1>
-            <p class="text-slate-500 text-sm mt-1">Inteligencia de Datos y Sincronización ClickUp</p>
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-brand-blue shadow-lg shadow-blue-500/10">
+                    <i class="fa-solid fa-chart-pie text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.5 LEAN</span>
+                    </h1>
+                    <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
+                </div>
+            </div>
         </div>
-        <div class="flex flex-wrap items-center gap-3">
-            <!-- BADGE CAPACIDAD OBJETIVO (600 UDS) -->
-            <div class="flex items-center gap-2.5 bg-emerald-950/50 border border-emerald-500/30 px-3.5 py-1.5 rounded-lg text-xs text-emerald-400 font-semibold shadow-inner">
-                <i class="fa-solid fa-truck-fast text-emerald-400"></i>
-                <span>Envíos Esta Sem: <strong id="header-output-week" class="text-white text-sm ml-1 font-mono">0</strong> uds</span>
-                <span id="header-output-var" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">0% del Obj. (600 uds)</span>
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            <!-- MONITOR CAPACIDAD 600 UDS -->
+            <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold">
+                    <i class="fa-solid fa-truck-ramp-box text-sm animate-pulse"></i>
+                    <span>Envíos Semanales:</span>
+                    <strong id="header-output-week" class="text-white text-base font-mono font-bold">0</strong>
+                    <span class="text-slate-500">/ 600 uds</span>
+                </div>
+                <div class="w-20 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
+                    <div id="header-progress-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="header-output-var" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0%</span>
             </div>
 
-            <div class="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs text-slate-400">
-                <i class="fa-solid fa-clock"></i> <span id="last-update" class="font-mono text-emerald-400">Calculando...</span>
+            <!-- RELOJ SINCRO -->
+            <div class="flex items-center gap-2 bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-400 font-mono">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="last-update">Calculando...</span>
             </div>
-            <button onclick="fetchClickUpData()" class="bg-brand-blue hover:bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-2">
+
+            <button onclick="fetchClickUpData()" class="bg-brand-blue hover:bg-blue-600 active:scale-95 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
                 <i class="fa-solid fa-rotate"></i> Actualizar
             </button>
         </div>
     </header>
 
-    <main class="space-y-6 max-w-[1600px] mx-auto">
+    <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES -->
+        <!-- KPIs PRINCIPALES CON GLOWS DE ALTA VISIBILIDAD -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <!-- Semana Móvil -->
-            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)))" class="bi-kpi-card rounded-xl p-5 relative group">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">A Fabricar (Próx 7 Días Lab.)</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="kpi-semana" class="text-3xl font-bold text-white">0</h2>
-                    <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg"><i class="fa-solid fa-calendar-week"></i></div>
+            <!-- Próximos 7 Días Lab. -->
+            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>A Fabricar (7 Días Lab.)</span>
+                    <i class="fa-solid fa-calendar-week text-slate-500"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-semana" class="text-4xl font-extrabold text-white font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-slate-500 font-medium">unidades</span>
                 </div>
             </div>
 
-            <!-- Hoy -->
-            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir && !isTaskCompleted(t)), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
-                <div class="flex justify-between items-start">
-                    <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
-                        A Fabricar (Hoy)
-                        <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-400 text-[10px] px-2 py-0.5 rounded border border-amber-500/30 animate-pulse">
-                            <i class="fa-solid fa-bolt"></i> Lotes Disponibles
+            <!-- Fabricar Hoy -->
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir && !isTaskCompleted(t)), true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-amber">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                        <span>A Fabricar (Hoy)</span>
+                        <span id="kpi-sugerencia-badge" class="hidden bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded-full border border-amber-500/40 animate-pulse font-mono">
+                            <i class="fa-solid fa-bolt"></i> Lotes
                         </span>
                     </p>
+                    <i class="fa-solid fa-stopwatch text-amber-400"></i>
                 </div>
-                <div class="flex justify-between items-end mt-1">
-                    <h2 id="kpi-hoy" class="text-3xl font-bold text-amber-400">0</h2>
-                    <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg"><i class="fa-solid fa-stopwatch"></i></div>
-                </div>
-            </div>
-
-            <!-- En Curso -->
-            <div onclick="openModal('Tiquets en curso', window.allTasks.filter(t => t.estado === 'EN CURSO' && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">Tiquets en curso</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="kpi-encurso" class="text-3xl font-bold text-emerald-400">0</h2>
-                    <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg"><i class="fa-solid fa-gears"></i></div>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-hoy" class="text-4xl font-extrabold text-amber-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-amber-500/80 font-medium">pendientes</span>
                 </div>
             </div>
 
-            <!-- Gateways LISTOS -->
-            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
-                <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">GW Reemplazados</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="kpi-gw" class="text-3xl font-bold text-orange-400">0</h2>
-                    <div class="p-2 bg-orange-500/10 text-orange-400 rounded-lg"><i class="fa-solid fa-router"></i></div>
+            <!-- Tiquets En Curso -->
+            <div onclick="openModal('Tiquets en curso', window.allTasks.filter(t => t.estado === 'EN CURSO' && !t.esSoloRecibir))" class="bi-kpi-card rounded-2xl p-5 relative group">
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Tiquets en curso</span>
+                    <i class="fa-solid fa-gears text-emerald-400"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-encurso" class="text-4xl font-extrabold text-emerald-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-emerald-500/80 font-medium">en mesa</span>
+                </div>
+            </div>
+
+            <!-- Gateways Reemplazados -->
+            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group glow-orange">
+                <p class="text-orange-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>GW Reemplazados</span>
+                    <i class="fa-solid fa-router text-orange-400"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-gw" class="text-4xl font-extrabold text-orange-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-orange-500/80 font-medium">listos</span>
                 </div>
             </div>
         </div>
 
-        <!-- GRÁFICOS BI (4 COLUMNAS) -->
+        <!-- REJILLA SIMÉTRICA DE 4 GRÁFICOS BI DE ALTA DEFINICIÓN -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Distribución por Modelo</h3>
-                <div class="w-full h-48 relative"><canvas id="chartModelos"></canvas></div>
-            </div>
-            <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 w-full text-left">Proyección Carga (L-V)</h3>
-                <div class="w-full h-48 relative"><canvas id="chartTiempos"></canvas></div>
-            </div>
-            <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-brand-purple uppercase tracking-wider mb-4 w-full text-left flex items-center gap-2"><i class="fa-solid fa-tags"></i> Distribución por Etiquetas</h3>
-                <div class="w-full h-48 relative"><canvas id="chartEtiquetas"></canvas></div>
-            </div>
-            <!-- GRÁFICO ENVÍOS SEMANALES INTERACTIVO -->
-            <div class="bi-panel p-5 flex flex-col justify-center items-center min-h-[250px]">
-                <h3 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-4 w-full text-left flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Envíos Semanales</span>
-                    <span class="text-[10px] text-slate-500 font-normal">Clic para ver tiquets</span>
+            <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-emerald-400"></i> Distribución por Modelo
                 </h3>
-                <div class="w-full h-48 relative"><canvas id="chartRendimiento"></canvas></div>
+                <div class="w-full h-44 relative flex items-center justify-center"><canvas id="chartModelos"></canvas></div>
+            </div>
+
+            <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-simple text-blue-400"></i> Proyección Carga (L-V)
+                </h3>
+                <div class="w-full h-44 relative"><canvas id="chartTiempos"></canvas></div>
+            </div>
+
+            <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
+                <h3 class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-tags"></i> Distribución por Etiquetas
+                </h3>
+                <div class="w-full h-44 relative"><canvas id="chartEtiquetas"></canvas></div>
+            </div>
+
+            <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Envíos Semanales</span>
+                    <span class="text-[10px] text-slate-500 font-normal font-mono">Clic para explorar</span>
+                </h3>
+                <div class="w-full h-44 relative"><canvas id="chartRendimiento"></canvas></div>
             </div>
         </div>
 
-        <!-- CAJAS NUMÉRICAS DE MODELOS -->
+        <!-- CAJAS NUMÉRICAS DE HARDWARE POR MODELO -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-emerald"></div><span class="text-sm font-medium">Ixotrack</span></div>
-                <span id="mod-ixo" class="text-xl font-bold text-white">0</span>
+            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-brand-emerald shadow-lg shadow-emerald-500/50"></span>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Ixotrack</span>
+                </div>
+                <span id="mod-ixo" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
-            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-blue"></div><span class="text-sm font-medium">Ixotrack pro</span></div>
-                <span id="mod-pro" class="text-xl font-bold text-white">0</span>
+
+            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-brand-blue shadow-lg shadow-blue-500/50"></span>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Ixotrack pro</span>
+                </div>
+                <span id="mod-pro" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-700"></div><span class="text-sm font-medium">IxotrackproM10</span></div>
-                <span id="mod-m10" class="text-xl font-bold text-white">0</span>
+
+            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-blue-700 shadow-lg shadow-blue-700/50"></span>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">IxotrackproM10</span>
+                </div>
+                <span id="mod-m10" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
-                <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-purple"></div><span class="text-sm font-medium">IxotrackproM10LR</span></div>
-                <span id="mod-m10lr" class="text-xl font-bold text-white">0</span>
+
+            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-brand-purple shadow-lg shadow-purple-500/50"></span>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">IxotrackproM10LR</span>
+                </div>
+                <span id="mod-m10lr" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
         </div>
 
-        <!-- TABLA PRINCIPAL DATOS CRUDOS -->
-        <section class="bi-panel overflow-hidden flex flex-col h-[500px]">
-            <div class="p-4 border-b border-slate-800 bg-slate-900 flex justify-between items-center">
-                <h2 class="text-sm font-bold text-slate-200"><i class="fa-solid fa-list-check text-slate-400 mr-2"></i> Tiquets Activos (No completados)</h2>
-                <span id="task-count-badge" class="px-2.5 py-1 bg-slate-800 text-slate-400 text-xs rounded-md border border-slate-700 font-mono">0 ACTIVOS</span>
+        <!-- TABLA PRINCIPAL CON BARRA DE PESTAÑAS (QUICK FILTERS) -->
+        <section class="bi-panel overflow-hidden flex flex-col h-[520px]">
+            <div class="p-4 border-b border-slate-800/80 bg-slate-900/90 flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
+                <div class="flex items-center gap-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-brand-blue"></i> Tiquets Activos
+                    </h2>
+                    <span id="task-count-badge" class="px-2.5 py-0.5 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700 font-mono">0 ACTIVOS</span>
+                </div>
+
+                <!-- PESTAÑAS DE FILTRADO RÁPIDO (NEW) -->
+                <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                    <button onclick="setTableFilter('ALL')" id="tab-ALL" class="tab-btn active px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white">Todos</button>
+                    <button onclick="setTableFilter('URGENT')" id="tab-URGENT" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-fire text-red-400"></i> Urgentes</button>
+                    <button onclick="setTableFilter('ENVIO')" id="tab-ENVIO" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-truck-fast text-blue-400"></i> Envíos</button>
+                    <button onclick="setTableFilter('REEMPLAZO')" id="tab-REEMPLAZO" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-rotate-left text-red-400"></i> Reemplazos</button>
+                    <button onclick="setTableFilter('SOLO_RECIBIR')" id="tab-SOLO_RECIBIR" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-inbox text-emerald-400"></i> Sólo Recibir</button>
+                </div>
             </div>
             
             <div class="overflow-auto flex-1 relative">
                 <table class="w-full text-left border-collapse text-sm">
-                    <thead class="sticky top-0 bg-slate-900 shadow-md z-10">
-                        <tr class="text-xs text-slate-400 uppercase tracking-wider">
-                            <th class="py-3 px-4 cursor-pointer hover:text-white w-24" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Tiquet / Cliente / <span class="text-brand-purple">Etiquetas</span> <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white w-32" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white text-center w-20" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('fecha')">Deadline <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                    <thead class="sticky top-0 bg-slate-900/95 backdrop-blur-md shadow-md z-10 border-b border-slate-800">
+                        <tr class="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('prioridad')">Prioridad <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white" onclick="sortTable('nombre')">Tiquet / Cliente / <span class="text-brand-purple">Etiquetas</span> <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white w-36" onclick="sortTable('modelo')">Modelo <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white text-center w-20" onclick="sortTable('unidades')">Uds <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('estado')">Estado <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-white w-28" onclick="sortTable('fecha')">Deadline <i class="fa-solid fa-sort ml-1 opacity-40"></i></th>
                         </tr>
                     </thead>
-                    <tbody id="main-table-body" class="divide-y divide-slate-800">
-                        <tr><td colspan="6" class="text-center py-10 text-slate-500">Inicializando Data...</td></tr>
+                    <tbody id="main-table-body" class="divide-y divide-slate-800/60 font-sans">
+                        <tr><td colspan="6" class="text-center py-12 text-slate-500 font-mono"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Sincronizando datos con ClickUp...</td></tr>
                     </tbody>
                 </table>
             </div>
         </section>
     </main>
 
-    <!-- MODAL -->
+    <!-- MODAL EMERGENTE -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
-        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeModal()"></div>
         
-        <div class="relative bg-slate-900 border border-slate-700 rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transform transition-transform duration-300 scale-95" id="modal-content-box">
+        <div class="relative bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl transform transition-transform duration-300 scale-95 overflow-hidden" id="modal-content-box">
             
-            <div class="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-900 rounded-t-xl">
+            <div class="flex justify-between items-center p-5 border-b border-slate-800 bg-slate-900">
                 <h3 id="modal-title" class="text-lg font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-filter text-brand-blue"></i> Desglose
                 </h3>
@@ -196,13 +317,13 @@
                 </button>
             </div>
 
-            <!-- RESUMEN DE MODELOS EN EL MODAL -->
-            <div id="modal-summary-models-box" class="bg-slate-900/90 border-b border-slate-800 p-4 px-5">
+            <!-- RESUMEN DE MODELOS EN MODAL -->
+            <div id="modal-summary-models-box" class="bg-slate-950/60 border-b border-slate-800/80 p-4 px-5">
                 <div id="modal-summary-models-list" class="flex flex-wrap gap-2.5"></div>
             </div>
 
-            <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN -->
-            <div id="modal-recommendation-box" class="hidden bg-slate-800/80 border-b-2 border-brand-amber/50 p-5">
+            <!-- CAJA DE RECOMENDACIÓN LEAN -->
+            <div id="modal-recommendation-box" class="hidden bg-amber-500/10 border-b border-amber-500/30 p-5">
                 <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
                     <i class="fa-solid fa-bolt"></i> Recomendaciones de Ensamblaje Eficiente (Lotes)
                 </h4>
@@ -212,38 +333,39 @@
             <div class="overflow-auto flex-1 p-5">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="sticky top-0 bg-slate-900">
-                        <tr class="border-b border-slate-700 text-xs text-slate-400 uppercase tracking-wider">
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider font-semibold">
                             <th class="pb-3 pr-4">Tiquet / Etiquetas</th>
                             <th class="pb-3 px-4">Modelo</th>
                             <th class="pb-3 px-4 text-center">Uds</th>
                             <th class="pb-3 pl-4 text-right">Deadline</th>
                         </tr>
                     </thead>
-                    <tbody id="modal-table-body" class="divide-y divide-slate-800"></tbody>
+                    <tbody id="modal-table-body" class="divide-y divide-slate-800/60"></tbody>
                 </table>
             </div>
             
-            <div class="p-4 border-t border-slate-800 bg-slate-900/80 rounded-b-xl flex justify-between items-center">
+            <div class="p-4 border-t border-slate-800 bg-slate-950/80 rounded-b-2xl flex justify-between items-center">
                 <span class="text-xs text-slate-500 font-mono" id="modal-total-tickets">0 ROWS</span>
                 <div class="text-right flex items-baseline gap-2">
-                    <span class="text-xs text-slate-500 uppercase">Suma Unidades:</span>
-                    <span class="text-2xl font-bold text-white" id="modal-total-units">0</span>
+                    <span class="text-xs text-slate-400 uppercase font-semibold">Suma Unidades:</span>
+                    <span class="text-3xl font-extrabold text-white font-mono" id="modal-total-units">0</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter, sans-serif';
         let charts = {};
 
-        const CAPACIDAD_OBJETIVO_SEMANAL = 600; // Capacidad de producción de referencia
+        const CAPACIDAD_OBJETIVO_SEMANAL = 600; 
 
         window.allTasks = [];
-        window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; // Guarda tareas por semana de envío
+        window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
         let currentSort = { column: 'fecha', dir: 'asc' };
+        let currentTableFilter = 'ALL'; // Estado del filtro por pestaña
 
         function isTaskCompleted(task) {
             const status = (task.estado || '').toUpperCase();
@@ -269,27 +391,27 @@
         function getTagHtml(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) {
-                return `<span class="inline-block bg-red-500/20 text-red-300 border border-red-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+                return `<span class="inline-block bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
             } else if (t.includes("SOLO RECIBIR")) {
-                return `<span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+                return `<span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
             } else if (t.includes("ENVIO")) {
-                return `<span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+                return `<span class="inline-block bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
             }
-            return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
+            return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
         function getPriorityHtml(task) {
             if (task.esSoloRecibir) {
-                return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>';
+                return '<span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-inbox"></i>Sólo Recibir</span>';
             }
             const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
             if (hasEnvio) {
-                return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-truck-fast mr-1"></i>Envíos</span>';
+                return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-truck-fast"></i>Envíos</span>';
             }
             if (task.prioridadNum === 1) {
-                return '<span class="px-2 py-0.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-fire mr-1"></i>Urgente</span>';
+                return '<span class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-fire"></i>Urgente</span>';
             }
-            return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-minus mr-1"></i>Normal</span>';
+            return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
         function parseDispositivos(task, modeloNombre) {
@@ -434,6 +556,14 @@
             }
         }
 
+        function setTableFilter(filterType) {
+            currentTableFilter = filterType;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-${filterType}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderMainTable();
+        }
+
         function checkBatchingRecommendations() {
             let modelsData = {};
             
@@ -464,16 +594,16 @@
                     const batchTotal = data.todayUnits + data.futureUnits;
                     
                     const ticketsHtml = data.futureTickets.map(t => 
-                        `<span class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-ticket text-slate-500"></i> ${t}</span>`
+                        `<span class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] flex items-center gap-1.5 font-mono"><i class="fa-solid fa-ticket text-slate-500"></i> ${t}</span>`
                     ).join('');
 
                     suggestions.push(`
-                        <div class="bg-slate-800/60 p-4 rounded-xl border border-amber-500/30 mb-3 shadow-inner">
+                        <div class="bg-slate-900/80 p-4 rounded-xl border border-amber-500/30 mb-3 shadow-inner">
                             <div class="flex items-center gap-3 mb-2 flex-wrap">
-                                <span class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote: ${model}</span>
-                                <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar (Próx 7 días L-V): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base ml-1">Lote de ${batchTotal} uds</strong></span>
+                                <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote: ${model}</span>
+                                <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar (7 días): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base font-mono ml-1">Lote de ${batchTotal} uds</strong></span>
                             </div>
-                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-700 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas hoy, adelanta a producción estos tiquets futuros:</p>
+                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-800 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas hoy, adelanta a producción estos tiquets futuros:</p>
                             <div class="flex flex-wrap gap-2 mt-1">
                                 ${ticketsHtml}
                             </div>
@@ -492,7 +622,6 @@
             return suggestions;
         }
 
-        // RENDERIZADO DE GRÁFICOS (ENVÍOS SEMANALES INTERACTIVOS)
         function renderCharts(agrupacionModelos, agrupacionTiempos, agrupacionEtiquetas, historialProduccion) {
             if(charts.modelos) charts.modelos.destroy();
             if(charts.tiempos) charts.tiempos.destroy();
@@ -508,7 +637,7 @@
                         data: Object.values(agrupacionModelos),
                         backgroundColor: ['#10b981', '#3b82f6', '#1d4ed8', '#8b5cf6', '#f97316', '#64748b'],
                         borderWidth: 0,
-                        hoverOffset: 4
+                        hoverOffset: 6
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
@@ -523,10 +652,10 @@
                         label: 'Unidades Requeridas',
                         data: Object.values(agrupacionTiempos),
                         backgroundColor: '#3b82f6',
-                        borderRadius: 4
+                        borderRadius: 6
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
             const etiquetasLabels = Object.keys(agrupacionEtiquetas);
@@ -541,13 +670,12 @@
                         label: 'Tiquets por Etiqueta',
                         data: Object.values(agrupacionEtiquetas),
                         backgroundColor: etiquetasColors,
-                        borderRadius: 4
+                        borderRadius: 6
                     }]
                 },
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: '#1e293b' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
-            // GRÁFICO 4: ENVÍOS SEMANALES CON CLICK PARA ABRIR DESPLEGABLE
             const ctxRendimiento = document.getElementById('chartRendimiento').getContext('2d');
             charts.rendimiento = new Chart(ctxRendimiento, {
                 type: 'bar',
@@ -556,16 +684,15 @@
                     datasets: [{
                         label: 'Envíos Realizados (Uds)',
                         data: historialProduccion,
-                        backgroundColor: ['#6366f1', '#3b82f6', '#8b5cf6', '#10b981'], // Colores llamativos distintos por semana
-                        borderRadius: 4,
-                        borderWidth: 0
+                        backgroundColor: ['#6366f1', '#3b82f6', '#8b5cf6', '#10b981'], 
+                        borderRadius: 6
                     }]
                 },
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
                     scales: { 
-                        y: { beginAtZero: true, grid: { color: '#1e293b' } }, 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, 
                         x: { grid: { display: false } } 
                     }, 
                     plugins: { legend: { display: false } },
@@ -595,10 +722,10 @@
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Próx. 7 Días Lab.': 0, 'Futuro': 0, 'Sin Fecha': 0 };
             let statsEtiquetas = {}; 
 
-            const w0 = getWeekBoundaries(0); // Esta semana
-            const w1 = getWeekBoundaries(1); // Semana pasada
-            const w2 = getWeekBoundaries(2); // Hace 2 semanas
-            const w3 = getWeekBoundaries(3); // Hace 3 semanas
+            const w0 = getWeekBoundaries(0); 
+            const w1 = getWeekBoundaries(1); 
+            const w2 = getWeekBoundaries(2); 
+            const w3 = getWeekBoundaries(3); 
 
             window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] };
             let outputW0 = 0, outputW1 = 0, outputW2 = 0, outputW3 = 0;
@@ -606,7 +733,6 @@
             window.allTasks.forEach(t => {
                 const completed = isTaskCompleted(t);
 
-                // Computar Envíos de Producción Real por semanas
                 if (completed && !t.esSoloRecibir && t.closedTimestamp > 0) {
                     if (t.closedTimestamp >= w0.start && t.closedTimestamp <= w0.end) {
                         outputW0 += t.unidadesBrutas;
@@ -623,7 +749,6 @@
                     }
                 }
 
-                // Trabajo Pendiente
                 if (!t.esSoloRecibir && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
@@ -657,18 +782,24 @@
                 }
             });
 
-            // Actualizar Header KPI con CAPACIDAD OBJETIVO DE 600 UDS
+            // HEADER PROGRESS BAR & BADGE
             document.getElementById('header-output-week').innerText = outputW0;
-            const badgeVar = document.getElementById('header-output-var');
-            const pctCapacidad = Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100);
+            const pctCapacidad = Math.min(Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100), 100);
             
+            const progressBar = document.getElementById('header-progress-bar');
+            if (progressBar) progressBar.style.width = `${pctCapacidad}%`;
+
+            const badgeVar = document.getElementById('header-output-var');
             badgeVar.innerText = `${pctCapacidad}% del Obj. (600 uds)`;
             if (pctCapacidad >= 70) {
-                badgeVar.className = `text-[10px] px-1.5 py-0.5 rounded font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`;
+                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`;
+                if (progressBar) progressBar.className = "bg-emerald-500 h-full transition-all duration-500";
             } else if (pctCapacidad >= 40) {
-                badgeVar.className = `text-[10px] px-1.5 py-0.5 rounded font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30`;
+                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30`;
+                if (progressBar) progressBar.className = "bg-amber-500 h-full transition-all duration-500";
             } else {
-                badgeVar.className = `text-[10px] px-1.5 py-0.5 rounded font-mono bg-red-500/20 text-red-300 border border-red-500/30`;
+                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30`;
+                if (progressBar) progressBar.className = "bg-red-500 h-full transition-all duration-500";
             }
 
             document.getElementById('kpi-semana').innerText = totalSemana;
@@ -695,10 +826,21 @@
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
             
-            const visibleTasks = window.allTasks.filter(t => !isTaskCompleted(t));
+            let visibleTasks = window.allTasks.filter(t => !isTaskCompleted(t));
             
+            // APLICAR PESTAÑAS DE FILTRADO RÁPIDO
+            if (currentTableFilter === 'URGENT') {
+                visibleTasks = visibleTasks.filter(t => t.prioridadNum === 1);
+            } else if (currentTableFilter === 'ENVIO') {
+                visibleTasks = visibleTasks.filter(t => t.etiquetas.some(tag => tag.includes('ENVIO')));
+            } else if (currentTableFilter === 'REEMPLAZO') {
+                visibleTasks = visibleTasks.filter(t => t.etiquetas.some(tag => tag.includes('REEMPLAZO')));
+            } else if (currentTableFilter === 'SOLO_RECIBIR') {
+                visibleTasks = visibleTasks.filter(t => t.esSoloRecibir);
+            }
+
             if (visibleTasks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tiquets activos (no completados) en la Base de Datos.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-slate-500 font-mono">No hay tiquets que coincidan con este filtro.</td></tr>';
                 return;
             }
 
@@ -707,7 +849,7 @@
                 const fechaText = task.timestamp === 9999999999999 ? 'No Deadline' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
                 
                 let highlightClass = '';
-                if(task.dateInfo.isTodayOrOverdue && !task.esSoloRecibir) highlightClass = 'text-amber-400 font-semibold';
+                if(task.dateInfo.isTodayOrOverdue && !task.esSoloRecibir) highlightClass = 'text-amber-400 font-bold';
                 
                 let etiquetasHtml = '';
                 if (task.etiquetas.length > 0) {
@@ -715,28 +857,28 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="table-row-hover border-b border-slate-800 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
-                        <td class="py-3 px-4 align-top pt-4">
+                    <tr class="table-row-hover border-b border-slate-800/60 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
+                        <td class="py-3.5 px-4 align-top pt-4">
                             ${getPriorityHtml(task)}
                         </td>
-                        <td class="py-3 px-4">
-                            <div class="font-medium text-slate-300 text-xs mb-1.5">${task.nombre}</div>
+                        <td class="py-3.5 px-4">
+                            <div class="font-semibold text-slate-200 text-xs mb-1">${task.nombre}</div>
                             <div class="flex flex-wrap gap-1">${etiquetasHtml}</div>
                         </td>
-                        <td class="py-3 px-4 align-top pt-4">
-                            <span class="inline-flex items-center gap-1.5 text-xs text-slate-300">
+                        <td class="py-3.5 px-4 align-top pt-4">
+                            <span class="inline-flex items-center gap-2 text-xs text-slate-300 font-medium">
                                 <span class="w-2 h-2 rounded-full" style="background-color: ${task.modeloInfo.hex}"></span>${task.modeloInfo.nombre}
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center align-top pt-4 font-bold text-sm ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
+                        <td class="py-3.5 px-4 text-center align-top pt-4 font-bold text-sm font-mono ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
                             ${task.esSoloRecibir ? `0 (${task.unidadesBrutas})` : task.unidades}
                         </td>
-                        <td class="py-3 px-4 align-top pt-4">
-                            <span class="px-2 py-0.5 text-[9px] rounded font-bold uppercase tracking-wider" style="background-color: ${task.estadoColor}15; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}30">
+                        <td class="py-3.5 px-4 align-top pt-4">
+                            <span class="px-2.5 py-0.5 text-[9px] rounded-md font-bold uppercase tracking-wider" style="background-color: ${task.estadoColor}15; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}30">
                                 ${task.estado}
                             </span>
                         </td>
-                        <td class="py-3 px-4 align-top pt-4 text-xs ${highlightClass} font-mono">${fechaText}</td>
+                        <td class="py-3.5 px-4 align-top pt-4 text-xs ${highlightClass} font-mono">${fechaText}</td>
                     </tr>
                 `;
             });
@@ -783,10 +925,10 @@
 
             if (activeModels.length > 0) {
                 summaryList.innerHTML = activeModels.map(m => `
-                    <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl shadow-sm">
                         <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${modelBreakdown[m].hex}"></span>
                         <span class="text-xs font-medium text-slate-300">${m}:</span>
-                        <span class="text-sm font-bold text-white">${modelBreakdown[m].units} <span class="text-[10px] font-normal text-slate-400">uds</span></span>
+                        <span class="text-sm font-bold font-mono text-white">${modelBreakdown[m].units} <span class="text-[10px] font-normal text-slate-400">uds</span></span>
                     </div>
                 `).join('');
                 summaryContainer.classList.remove('hidden');
@@ -812,7 +954,7 @@
             tbody.innerHTML = '';
             
             if (tasks.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm">No hay datos en este filtro.</td></tr>`;
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm font-mono">No hay datos en este filtro.</td></tr>`;
             }
             
             tasks.forEach(t => {
@@ -829,11 +971,11 @@
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir ? 'opacity-60' : ''}">
                         <td class="py-3 pr-4">
-                            <div class="font-medium text-slate-300 text-xs">${t.nombre}</div>
+                            <div class="font-semibold text-slate-200 text-xs">${t.nombre}</div>
                             <div class="flex flex-wrap gap-1 mt-1">${etiquetasHtml}</div>
                         </td>
-                        <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400"><span class="w-1.5 h-1.5 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
-                        <td class="py-3 px-4 align-top pt-4 text-center font-bold text-sm ${t.esSoloRecibir ? 'text-slate-500' : 'text-white'}">
+                        <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400 font-medium"><span class="w-2 h-2 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
+                        <td class="py-3 px-4 align-top pt-4 text-center font-bold font-mono text-sm ${t.esSoloRecibir ? 'text-slate-500' : 'text-white'}">
                             ${unitsShow}
                         </td>
                         <td class="py-3 pl-4 align-top pt-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
