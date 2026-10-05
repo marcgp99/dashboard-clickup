@@ -59,7 +59,7 @@
         <!-- KPIs PRINCIPALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Semana Móvil -->
-            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir))" class="bi-kpi-card rounded-xl p-5 relative group">
+            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)))" class="bi-kpi-card rounded-xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">A Fabricar (Próx 7 Días Lab.)</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-semana" class="text-3xl font-bold text-white">0</h2>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Hoy -->
-            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir && !isTaskCompleted(t)), true)" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-amber-500">
                 <div class="flex justify-between items-start">
                     <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1 flex items-center gap-2">
                         A Fabricar (Hoy)
@@ -93,7 +93,7 @@
             </div>
 
             <!-- Gateways LISTOS -->
-            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && ['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
+            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-xl p-5 relative group border-l-4 border-l-orange-500">
                 <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">GW Reemplazados</p>
                 <div class="flex justify-between items-end">
                     <h2 id="kpi-gw" class="text-3xl font-bold text-orange-400">0</h2>
@@ -120,19 +120,19 @@
 
         <!-- CAJAS NUMÉRICAS DE MODELOS -->
         <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-emerald"></div><span class="text-sm font-medium">Ixotrack</span></div>
                 <span id="mod-ixo" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && t.dateInfo.isWithinWindow))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-blue"></div><span class="text-sm font-medium">Ixotrack pro</span></div>
                 <span id="mod-pro" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && t.dateInfo.isWithinWindow))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-700"></div><span class="text-sm font-medium">IxotrackproM10</span></div>
                 <span id="mod-m10" class="text-xl font-bold text-white">0</span>
             </div>
-            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && t.dateInfo.isWithinWindow))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
+            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition">
                 <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-brand-purple"></div><span class="text-sm font-medium">IxotrackproM10LR</span></div>
                 <span id="mod-m10lr" class="text-xl font-bold text-white">0</span>
             </div>
@@ -221,7 +221,13 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // 1. REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags), IGNORA TÍTULOS
+        // EVALUADOR DE ESTADO COMPLETADO
+        function isTaskCompleted(task) {
+            const status = (task.estado || '').toUpperCase();
+            return ['LISTO', 'COMPLETADO', 'CERRADO', 'DONE', 'CLOSED'].includes(status);
+        }
+
+        // REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags)
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 return task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"));
@@ -229,14 +235,14 @@
             return false;
         }
 
-        // ASIGNADOR DE COLORES PARA ETIQUETAS
+        // COLORES ETIQUETAS
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (t.includes("REEMPLAZO")) return '#ef4444'; // Rojo
-            if (t.includes("SOLO RECIBIR")) return '#10b981'; // Verde
-            if (t.includes("ENVIO")) return '#3b82f6'; // Azul
-            if (t.includes("SIN ETIQUETA")) return '#64748b'; // Gris
-            return '#8b5cf6'; // Morado
+            if (t.includes("REEMPLAZO")) return '#ef4444';
+            if (t.includes("SOLO RECIBIR")) return '#10b981';
+            if (t.includes("ENVIO")) return '#3b82f6';
+            if (t.includes("SIN ETIQUETA")) return '#64748b';
+            return '#8b5cf6';
         }
 
         function getTagHtml(tag) {
@@ -251,7 +257,7 @@
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded text-[9px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
-        // ASIGNADOR DE PRIORIDADES VISUAL
+        // PRIORIDADES
         function getPriorityHtml(task) {
             if (task.esSoloRecibir) {
                 return '<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-inbox mr-1"></i>Sólo Recibir</span>';
@@ -266,31 +272,53 @@
             return '<span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-minus mr-1"></i>Normal</span>';
         }
 
-        function parseDispositivos(task) {
-            if (task.description) {
-                const matchDesc = task.description.match(/Nº\s*dispositivos:\s*(\d+)/i);
+        // CONTEO DE DISPOSITIVOS PRECISO
+        function parseDispositivos(task, modeloNombre) {
+            const name = task.name || '';
+            const desc = task.description || '';
+
+            // Si es un Gateway, extraer cantidad específica de antenas/gateways o por defecto 1
+            if (modeloNombre === 'Gateway') {
+                const matchGwNum = name.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i) || desc.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i);
+                if (matchGwNum) return parseInt(matchGwNum[1], 10);
+            }
+
+            if (desc) {
+                const matchDesc = desc.match(/Nº\s*dispositivos:\s*(\d+)/i);
                 if (matchDesc) return parseInt(matchDesc[1], 10);
             }
-            if (task.name) {
-                const matchTitle = task.name.match(/^x(\d+)/i) || task.name.match(/\bx(\d+)\b/i);
+            if (name) {
+                const matchTitle = name.match(/^x(\d+)/i) || name.match(/\bx(\d+)\b/i);
                 if (matchTitle) return parseInt(matchTitle[1], 10);
             }
             return 1; 
         }
 
+        // CLASIFICACIÓN DE MODELOS (IXOTRACK PRIMERO)
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
             
-            if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
-                return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
+            // 1. Detección de modelos Ixotrack PRIMERO
+            if (taskName.includes('🟩') || (n.includes('ixotrack') && !n.includes('pro'))) {
+                return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
             }
-            if (taskName.includes('🟩')) return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
-            if (taskName.includes('🟪')) return { nombre: 'IxotrackproM10LR', color: 'purple', hex: '#8b5cf6' };
+            if (taskName.includes('🟪') || n.includes('m10lr')) {
+                return { nombre: 'IxotrackproM10LR', color: 'purple', hex: '#8b5cf6' };
+            }
             if (taskName.includes('🟦')) {
                 if (n.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue', hex: '#1d4ed8' };
                 return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' }; 
             }
+            if (n.includes('m10lr')) return { nombre: 'IxotrackproM10LR', color: 'purple', hex: '#8b5cf6' };
+            if (n.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue', hex: '#1d4ed8' };
+            if (n.includes('ixotrack pro') || n.includes('ixotrackpro')) return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' };
+
+            // 2. Gateways/Antenas SOLO si no es Ixotrack
+            if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
+                return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
+            }
+
             return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
         }
 
@@ -331,10 +359,10 @@
         function normalizeTasks(rawTasks) {
             return rawTasks.map(task => {
                 const esSoloRecibir = checkSoloRecibir(task);
-                const unidadesBrutas = parseDispositivos(task);
+                const modeloInfo = parseModelo(task.name);
+                const unidadesBrutas = parseDispositivos(task, modeloInfo.nombre);
                 const unidadesContables = esSoloRecibir ? 0 : unidadesBrutas;
                 
-                const modeloInfo = parseModelo(task.name);
                 const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
                 const dateInfo = parseFechas(task.due_date);
                 const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
@@ -362,7 +390,6 @@
 
         async function fetchClickUpData() {
             try {
-                // TRUCO ANTI-CACHÉ (Para que siempre pida datos frescos a Vercel)
                 const urlPeticion = '/api/clickup?t=' + new Date().getTime();
                 const response = await fetch(urlPeticion, { cache: 'no-store' });
                 
@@ -386,7 +413,7 @@
             
             window.allTasks.forEach(task => {
                 if (task.esSoloRecibir) return; 
-                if (['LISTO', 'COMPLETADO', 'CERRADO'].includes(task.estado)) return;
+                if (isTaskCompleted(task)) return;
                 if (!task.dateInfo.isWithinWindow) return; 
                 
                 const model = task.modeloInfo.nombre;
@@ -504,7 +531,10 @@
             let statsEtiquetas = {}; 
 
             window.allTasks.forEach(t => {
-                if (!t.esSoloRecibir) {
+                const completed = isTaskCompleted(t);
+
+                // TRABAJO ACTIVO: Solo computa si NO está completado y NO es Solo Recibir
+                if (!t.esSoloRecibir && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
                     
@@ -518,20 +548,24 @@
                     }
                 }
 
-                if (t.modeloInfo.nombre === 'Gateway' && ['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)) {
+                // Gateways Reemplazados: Tiquets de Gateway que SÍ están completados/listos
+                if (t.modeloInfo.nombre === 'Gateway' && completed) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
 
-                if (t.estado === 'EN CURSO' && !t.esSoloRecibir) {
+                if (t.estado === 'EN CURSO' && !t.esSoloRecibir && !completed) {
                     enCursoCount++;
                 }
 
-                if (t.etiquetas.length > 0) {
-                    t.etiquetas.forEach(tag => {
-                        statsEtiquetas[tag] = (statsEtiquetas[tag] || 0) + 1;
-                    });
-                } else {
-                    statsEtiquetas['SIN ETIQUETA'] = (statsEtiquetas['SIN ETIQUETA'] || 0) + 1;
+                // Etiquetas en tiquets activos
+                if (!completed) {
+                    if (t.etiquetas.length > 0) {
+                        t.etiquetas.forEach(tag => {
+                            statsEtiquetas[tag] = (statsEtiquetas[tag] || 0) + 1;
+                        });
+                    } else {
+                        statsEtiquetas['SIN ETIQUETA'] = (statsEtiquetas['SIN ETIQUETA'] || 0) + 1;
+                    }
                 }
             });
 
@@ -545,7 +579,7 @@
             document.getElementById('mod-m10').innerText = statsModelos['IxotrackproM10'];
             document.getElementById('mod-m10lr').innerText = statsModelos['IxotrackproM10LR'];
             
-            const activeTicketsCount = window.allTasks.filter(t => !['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado)).length;
+            const activeTicketsCount = window.allTasks.filter(t => !isTaskCompleted(t)).length;
             document.getElementById('task-count-badge').innerText = `${activeTicketsCount} ACTIVOS`;
             
             checkBatchingRecommendations();
@@ -559,7 +593,7 @@
             const tbody = document.getElementById('main-table-body');
             tbody.innerHTML = '';
             
-            const visibleTasks = window.allTasks.filter(t => !['LISTO', 'COMPLETADO', 'CERRADO'].includes(t.estado));
+            const visibleTasks = window.allTasks.filter(t => !isTaskCompleted(t));
             
             if (visibleTasks.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">No hay tiquets activos (no completados) en la Base de Datos.</td></tr>';
