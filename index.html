@@ -180,6 +180,11 @@
                 </button>
             </div>
 
+            <!-- NUEVO RESUMEN DE MODELOS EN EL MODAL -->
+            <div id="modal-summary-models-box" class="bg-slate-900/90 border-b border-slate-800 p-4 px-5">
+                <div id="modal-summary-models-list" class="flex flex-wrap gap-2.5"></div>
+            </div>
+
             <!-- CAJA DE SUGERENCIA DE PRODUCCIÓN -->
             <div id="modal-recommendation-box" class="hidden bg-slate-800/80 border-b-2 border-brand-amber/50 p-5">
                 <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
@@ -227,7 +232,7 @@
             return ['LISTO', 'COMPLETADO', 'CERRADO', 'DONE', 'CLOSED'].includes(status);
         }
 
-        // REGLA ESTRICTA DE "SOLO RECIBIR" -> Solo mira las etiquetas (tags)
+        // REGLA ESTRICTA DE "SOLO RECIBIR"
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
                 return task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"));
@@ -277,7 +282,6 @@
             const name = task.name || '';
             const desc = task.description || '';
 
-            // Si es un Gateway, extraer cantidad específica de antenas/gateways o por defecto 1
             if (modeloNombre === 'Gateway') {
                 const matchGwNum = name.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i) || desc.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i);
                 if (matchGwNum) return parseInt(matchGwNum[1], 10);
@@ -294,12 +298,11 @@
             return 1; 
         }
 
-        // CLASIFICACIÓN DE MODELOS (IXOTRACK PRIMERO)
+        // CLASIFICACIÓN DE MODELOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase();
             
-            // 1. Detección de modelos Ixotrack PRIMERO
             if (taskName.includes('🟩') || (n.includes('ixotrack') && !n.includes('pro'))) {
                 return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
             }
@@ -314,7 +317,6 @@
             if (n.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue', hex: '#1d4ed8' };
             if (n.includes('ixotrack pro') || n.includes('ixotrackpro')) return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' };
 
-            // 2. Gateways/Antenas SOLO si no es Ixotrack
             if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
                 return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
             }
@@ -533,7 +535,6 @@
             window.allTasks.forEach(t => {
                 const completed = isTaskCompleted(t);
 
-                // TRABAJO ACTIVO: Solo computa si NO está completado y NO es Solo Recibir
                 if (!t.esSoloRecibir && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
@@ -548,7 +549,6 @@
                     }
                 }
 
-                // Gateways Reemplazados: Tiquets de Gateway que SÍ están completados/listos
                 if (t.modeloInfo.nombre === 'Gateway' && completed) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
@@ -557,7 +557,6 @@
                     enCursoCount++;
                 }
 
-                // Etiquetas en tiquets activos
                 if (!completed) {
                     if (t.etiquetas.length > 0) {
                         t.etiquetas.forEach(tag => {
@@ -662,6 +661,36 @@
         function openModal(title, tasks, showRecommendations = false) {
             document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-filter text-brand-blue"></i> Filtro Activo: ${title}`;
             
+            // --- RESUMEN DE MODELOS EN EL MODAL ---
+            const summaryContainer = document.getElementById('modal-summary-models-box');
+            const summaryList = document.getElementById('modal-summary-models-list');
+            
+            let modelBreakdown = {};
+            tasks.forEach(t => {
+                const mName = t.modeloInfo.nombre;
+                const mHex = t.modeloInfo.hex;
+                if (!modelBreakdown[mName]) {
+                    modelBreakdown[mName] = { units: 0, count: 0, hex: mHex };
+                }
+                modelBreakdown[mName].units += t.unidades;
+                modelBreakdown[mName].count += 1;
+            });
+
+            const activeModels = Object.keys(modelBreakdown);
+
+            if (activeModels.length > 0) {
+                summaryList.innerHTML = activeModels.map(m => `
+                    <div class="flex items-center gap-2 bg-slate-800/90 border border-slate-700/80 px-3 py-1.5 rounded-lg shadow-sm">
+                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${modelBreakdown[m].hex}"></span>
+                        <span class="text-xs font-medium text-slate-300">${m}:</span>
+                        <span class="text-sm font-bold text-white">${modelBreakdown[m].units} <span class="text-[10px] font-normal text-slate-400">uds</span></span>
+                    </div>
+                `).join('');
+                summaryContainer.classList.remove('hidden');
+            } else {
+                summaryContainer.classList.add('hidden');
+            }
+
             const recBox = document.getElementById('modal-recommendation-box');
             if (showRecommendations) {
                 const sugerencias = checkBatchingRecommendations();
