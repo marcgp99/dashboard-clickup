@@ -221,15 +221,12 @@
         window.allTasks = [];
         let currentSort = { column: 'fecha', dir: 'asc' };
 
-        // DETECCIÓN DE ETIQUETA "SOLO RECIBIR"
+        // SOLUCIÓN ESTRICTA: Sólo busca en las etiquetas de ClickUp
         function checkSoloRecibir(task) {
             if (task.tags && Array.isArray(task.tags)) {
-                if (task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"))) {
-                    return true;
-                }
+                return task.tags.some(t => t.name && t.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("solo recibir"));
             }
-            const fullText = ((task.name || '') + ' ' + (task.description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            return fullText.includes("solo recibir");
+            return false;
         }
 
         // ASIGNADOR DE COLORES PARA ETIQUETAS (Texto y Gráficos)
@@ -367,9 +364,13 @@
             });
         }
 
+        // FUNCIÓN ACTUALIZADA: SISTEMA ANTI-CACHÉ
         async function fetchClickUpData() {
             try {
-                const response = await fetch('/api/clickup');
+                // Añade el parámetro de tiempo para burlar la caché de Vercel y del navegador
+                const urlPeticion = '/api/clickup?t=' + new Date().getTime();
+                const response = await fetch(urlPeticion, { cache: 'no-store' });
+                
                 if (!response.ok) throw new Error('Error de conexión');
                 const data = await response.json();
                 
@@ -478,7 +479,6 @@
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#1e293b' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
 
-            // Generamos el array de colores dinámico para el gráfico de Etiquetas
             const etiquetasLabels = Object.keys(agrupacionEtiquetas);
             const etiquetasColors = etiquetasLabels.map(tag => getTagColorHex(tag));
 
@@ -490,7 +490,7 @@
                     datasets: [{
                         label: 'Tiquets por Etiqueta',
                         data: Object.values(agrupacionEtiquetas),
-                        backgroundColor: etiquetasColors, // Array de colores dinámico
+                        backgroundColor: etiquetasColors,
                         borderRadius: 4
                     }]
                 },
