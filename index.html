@@ -33,7 +33,6 @@
             color: #cbd5e1;
         }
 
-        /* EFECTOS GLASSMORPHISM Y GLOW INDUSTRIAL */
         .bi-panel { 
             background: rgba(15, 23, 42, 0.75); 
             backdrop-filter: blur(12px);
@@ -72,13 +71,11 @@
             background-color: rgba(30, 41, 59, 0.7); 
         }
 
-        /* CUSTOM SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #0b1329; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* TABS ACTIVAS */
         .tab-btn {
             transition: all 0.2s ease;
         }
@@ -100,7 +97,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.5 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.6 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -139,7 +136,7 @@
 
     <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES CON GLOWS DE ALTA VISIBILIDAD -->
+        <!-- KPIs PRINCIPALES -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Próximos 7 Días Lab. -->
             <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
@@ -195,7 +192,7 @@
             </div>
         </div>
 
-        <!-- REJILLA SIMÉTRICA DE 4 GRÁFICOS BI DE ALTA DEFINICIÓN -->
+        <!-- REJILLA DE 4 GRÁFICOS BI -->
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -262,7 +259,7 @@
             </div>
         </div>
 
-        <!-- TABLA PRINCIPAL CON BARRA DE PESTAÑAS (QUICK FILTERS) -->
+        <!-- TABLA PRINCIPAL CON PESTAÑAS -->
         <section class="bi-panel overflow-hidden flex flex-col h-[520px]">
             <div class="p-4 border-b border-slate-800/80 bg-slate-900/90 flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
                 <div class="flex items-center gap-3">
@@ -272,7 +269,6 @@
                     <span id="task-count-badge" class="px-2.5 py-0.5 bg-slate-800 text-slate-400 text-xs rounded-full border border-slate-700 font-mono">0 ACTIVOS</span>
                 </div>
 
-                <!-- PESTAÑAS DE FILTRADO RÁPIDO (NEW) -->
                 <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
                     <button onclick="setTableFilter('ALL')" id="tab-ALL" class="tab-btn active px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white">Todos</button>
                     <button onclick="setTableFilter('URGENT')" id="tab-URGENT" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-fire text-red-400"></i> Urgentes</button>
@@ -365,7 +361,7 @@
         window.allTasks = [];
         window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
         let currentSort = { column: 'fecha', dir: 'asc' };
-        let currentTableFilter = 'ALL'; // Estado del filtro por pestaña
+        let currentTableFilter = 'ALL';
 
         function isTaskCompleted(task) {
             const status = (task.estado || '').toUpperCase();
@@ -414,13 +410,22 @@
             return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
+        // CONTEO ESTRICAMENTE CORREGIDO PARA GATEWAYS
         function parseDispositivos(task, modeloNombre) {
             const name = task.name || '';
             const desc = task.description || '';
 
+            // SI ES GATEWAY: Busca únicamente una cantidad ligada explícitamente a GW/Gateway/Antena (ej: "x2 GW", "2 gateways", "3 antenas")
             if (modeloNombre === 'Gateway') {
-                const matchGwNum = name.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i) || desc.match(/(\d+)\s*(gw|gateway|gateways|antena|antenas)/i);
-                if (matchGwNum) return parseInt(matchGwNum[1], 10);
+                const matchGwNum = name.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) || 
+                                   desc.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) ||
+                                   name.match(/\b(gw|gateway|gateways|antena|antenas)\s*x?(\d+)\b/i);
+                if (matchGwNum) {
+                    const qty = parseInt(matchGwNum[1] || matchGwNum[2], 10);
+                    return qty > 0 ? qty : 1;
+                }
+                // Si no hay una cantidad explícita atribuida al Gateway, NUNCA toma los multiplicadores de trackers (ej: x16 Dispos). POR DEFECTO ES 1.
+                return 1;
             }
 
             if (desc) {
@@ -782,7 +787,6 @@
                 }
             });
 
-            // HEADER PROGRESS BAR & BADGE
             document.getElementById('header-output-week').innerText = outputW0;
             const pctCapacidad = Math.min(Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100), 100);
             
@@ -828,7 +832,6 @@
             
             let visibleTasks = window.allTasks.filter(t => !isTaskCompleted(t));
             
-            // APLICAR PESTAÑAS DE FILTRADO RÁPIDO
             if (currentTableFilter === 'URGENT') {
                 visibleTasks = visibleTasks.filter(t => t.prioridadNum === 1);
             } else if (currentTableFilter === 'ENVIO') {
