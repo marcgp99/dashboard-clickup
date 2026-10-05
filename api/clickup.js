@@ -4,7 +4,8 @@ export default async function handler(req, res) {
   const folderId = '901515642734';
 
   try {
-    const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=false`, {
+    // CAMBIO VITAL: include_closed=true para que ClickUp no nos oculte los tiquets en estado LISTO
+    const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=true`, {
       method: 'GET',
       headers: {
         'Authorization': apiKey,
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    // ESTO ES LO NUEVO: Obligamos a Vercel a no cachear nunca esta respuesta
+    // Filtros Anti-Caché para asegurar datos en tiempo real
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
