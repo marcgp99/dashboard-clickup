@@ -97,7 +97,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.6 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.7 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -321,7 +321,7 @@
             <!-- CAJA DE RECOMENDACIÓN LEAN -->
             <div id="modal-recommendation-box" class="hidden bg-amber-500/10 border-b border-amber-500/30 p-5">
                 <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
-                    <i class="fa-solid fa-bolt"></i> Recomendaciones de Ensamblaje Eficiente (Lotes)
+                    <i class="fa-solid fa-bolt"></i> Oportunidades de Producción en Serie
                 </h4>
                 <div id="modal-recommendation-list" class="space-y-3"></div>
             </div>
@@ -415,7 +415,7 @@
             const name = task.name || '';
             const desc = task.description || '';
 
-            // SI ES GATEWAY: Busca únicamente una cantidad ligada explícitamente a GW/Gateway/Antena (ej: "x2 GW", "2 gateways", "3 antenas")
+            // SI ES GATEWAY: Busca únicamente una cantidad ligada explícitamente a GW/Gateway/Antena
             if (modeloNombre === 'Gateway') {
                 const matchGwNum = name.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) || 
                                    desc.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) ||
@@ -424,7 +424,6 @@
                     const qty = parseInt(matchGwNum[1] || matchGwNum[2], 10);
                     return qty > 0 ? qty : 1;
                 }
-                // Si no hay una cantidad explícita atribuida al Gateway, NUNCA toma los multiplicadores de trackers (ej: x16 Dispos). POR DEFECTO ES 1.
                 return 1;
             }
 
@@ -608,7 +607,7 @@
                                 <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider text-white" style="background-color: ${data.hex}">Lote: ${model}</span>
                                 <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar (7 días): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base font-mono ml-1">Lote de ${batchTotal} uds</strong></span>
                             </div>
-                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-800 pt-2"><i class="fa-solid fa-dolly mr-1 text-slate-500"></i> Para optimizar el Setup de las mesas hoy, adelanta a producción estos tiquets futuros:</p>
+                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-800 pt-2"><i class="fa-solid fa-boxes-stacked mr-1 text-slate-500"></i> Unidades sugeridas para completar lote en serie:</p>
                             <div class="flex flex-wrap gap-2 mt-1">
                                 ${ticketsHtml}
                             </div>
