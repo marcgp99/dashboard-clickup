@@ -1,4 +1,17 @@
 export default async function handler(req, res) {
+  // Configuración de Seguridad y Anti-Caché
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  const EXPECTED_PIN = '2505!';
+  const providedPin = req.headers['x-pin-token'] || req.query.pin;
+
+  // Validación de PIN
+  if (providedPin !== EXPECTED_PIN) {
+    return res.status(401).json({ error: 'Acceso no autorizado. PIN incorrecto.' });
+  }
+
   const apiKey = process.env.CLICKUP_API_KEY;
   const teamId = '90151302562';
   const folderId = '901515642734';
@@ -8,7 +21,7 @@ export default async function handler(req, res) {
     let page = 0;
     let keepFetching = true;
 
-    // Bucle para pedir todas las páginas (Máximo 10 páginas = 1000 tiquets para evitar bloqueos)
+    // Paginación continua (máximo 1000 tiquets)
     while (keepFetching && page < 10) { 
       const response = await fetch(`https://api.clickup.com/api/v2/team/${teamId}/task?folder_ids%5B%5D=${folderId}&subtasks=true&include_closed=true&page=${page}`, {
         method: 'GET',
@@ -26,21 +39,16 @@ export default async function handler(req, res) {
       const data = await response.json();
       
       if (data.tasks && data.tasks.length > 0) {
-        allTasks = allTasks.concat(data.tasks); // Juntamos los tiquets
+        allTasks = allTasks.concat(data.tasks);
         if (data.tasks.length < 100) {
-          keepFetching = false; // Si trae menos de 100, es la última página
+          keepFetching = false;
         } else {
-          page++; // Pasar a la siguiente página
+          page++;
         }
       } else {
         keepFetching = false;
       }
     }
-    
-    // Filtros de seguridad para que Vercel nunca use Caché antigua
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
     
     res.status(200).json({ tasks: allTasks });
     
