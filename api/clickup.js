@@ -4,7 +4,8 @@ export default async function handler(req, res) {
   res.setHeader('Pragma', 'no-cache');
   res.setHeader('Expires', '0');
 
-  const EXPECTED_PIN = '2505!';
+  // NUEVA CLAVE DE ACCESO
+  const EXPECTED_PIN = 'IxorigueProd*2505!';
   const providedPin = req.headers['x-pin-token'] || req.query.pin;
 
   // Validación de PIN
