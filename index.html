@@ -88,6 +88,30 @@
 </head>
 <body class="min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
+    <!-- PANTALLA DE BLOQUEO POR PIN (SECURITY OVERLAY) -->
+    <div id="pin-overlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden">
+            <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/30 rounded-xl text-brand-blue flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1">Ixorigue Producción</h2>
+            <p class="text-slate-400 text-xs mb-6">Acceso restringido. Introduce el PIN corporativo.</p>
+            
+            <form onsubmit="handlePinSubmit(event)" class="space-y-4">
+                <input type="password" id="pin-input" placeholder="Introduce el PIN" required
+                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-center text-white text-lg tracking-widest font-mono focus:outline-none focus:border-brand-blue transition">
+                
+                <p id="pin-error" class="text-red-400 text-xs hidden font-medium">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> PIN incorrecto
+                </p>
+
+                <button type="submit" class="w-full bg-brand-blue hover:bg-blue-600 active:scale-95 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-500/20 text-sm">
+                    Acceder al Panel
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- HEADER BI HIGH-TECH CON MONITOR DE CAPACIDAD OBJETIVO -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
         <div>
@@ -130,6 +154,10 @@
 
             <button onclick="fetchClickUpData()" class="bg-brand-blue hover:bg-blue-600 active:scale-95 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
                 <i class="fa-solid fa-rotate"></i> Actualizar
+            </button>
+            
+            <button onclick="logoutPin()" title="Cerrar Sesión PIN" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white p-2 rounded-xl text-xs transition">
+                <i class="fa-solid fa-power-off"></i>
             </button>
         </div>
     </header>
@@ -350,7 +378,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT Y CONTROL DE ACCESO PIN -->
     <script>
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter, sans-serif';
@@ -362,6 +390,30 @@
         window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
         let currentSort = { column: 'fecha', dir: 'asc' };
         let currentTableFilter = 'ALL';
+
+        // SISTEMA DE SEGURIDAD POR PIN
+        function checkPinAuth() {
+            const savedPin = localStorage.getItem('ixorigue_pin');
+            if (savedPin) {
+                document.getElementById('pin-overlay').classList.add('hidden');
+                fetchClickUpData();
+            } else {
+                document.getElementById('pin-overlay').classList.remove('hidden');
+            }
+        }
+
+        function handlePinSubmit(e) {
+            e.preventDefault();
+            const inputPin = document.getElementById('pin-input').value;
+            localStorage.setItem('ixorigue_pin', inputPin);
+            fetchClickUpData();
+        }
+
+        function logoutPin() {
+            localStorage.removeItem('ixorigue_pin');
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-overlay').classList.remove('hidden');
+        }
 
         function isTaskCompleted(task) {
             const status = (task.estado || '').toUpperCase();
@@ -410,12 +462,10 @@
             return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
-        // CONTEO ESTRICAMENTE CORREGIDO PARA GATEWAYS
         function parseDispositivos(task, modeloNombre) {
             const name = task.name || '';
             const desc = task.description || '';
 
-            // SI ES GATEWAY: Busca únicamente una cantidad ligada explícitamente a GW/Gateway/Antena
             if (modeloNombre === 'Gateway') {
                 const matchGwNum = name.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) || 
                                    desc.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) ||
@@ -541,13 +591,28 @@
         }
 
         async function fetchClickUpData() {
+            const pin = localStorage.getItem('ixorigue_pin');
+            const pinError = document.getElementById('pin-error');
+
             try {
                 const urlPeticion = '/api/clickup?t=' + new Date().getTime();
-                const response = await fetch(urlPeticion, { cache: 'no-store' });
+                const response = await fetch(urlPeticion, { 
+                    cache: 'no-store',
+                    headers: { 'x-pin-token': pin || '' }
+                });
                 
+                if (response.status === 401) {
+                    if (pinError) pinError.classList.remove('hidden');
+                    document.getElementById('pin-overlay').classList.remove('hidden');
+                    return;
+                }
+
                 if (!response.ok) throw new Error('Error de conexión');
-                const data = await response.json();
                 
+                if (pinError) pinError.classList.add('hidden');
+                document.getElementById('pin-overlay').classList.add('hidden');
+
+                const data = await response.json();
                 window.allTasks = normalizeTasks(data.tasks || []);
                 window.allTasks.sort((a, b) => b.prioridadNum - a.prioridadNum || a.timestamp - b.timestamp);
                 
@@ -1007,7 +1072,8 @@
             }, 300);
         }
 
-        fetchClickUpData();
+        // INICIALIZACIÓN
+        checkPinAuth();
         setInterval(fetchClickUpData, 60000);
     </script>
 </body>
