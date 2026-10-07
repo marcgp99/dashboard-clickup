@@ -142,7 +142,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.6 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.7 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -164,7 +164,7 @@
                 <span id="header-output-var" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0%</span>
             </div>
 
-            <!-- MONITOR 2: SOPORTE EXTRA (CONTROL DE CAPACIDAD POR CUALQUIERA DE LAS 3 FAMILIAS) -->
+            <!-- MONITOR 2: SOPORTE EXTRA -->
             <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
                 <div class="flex items-center gap-2 text-cyan-400 font-semibold">
                     <i class="fa-solid fa-headset text-sm"></i>
@@ -471,6 +471,21 @@
         const CAPACIDAD_PRO_SERIES = 300; // Ixotrack pro + IxotrackproM10 + IxotrackproM10LR
         const CAPACIDAD_COWPRO = 1000;
 
+        // MAPA DE COLORES DINÁMICO POR NOMBRE DE MODELO (Asegura sincronización exacta)
+        function getModelColorHex(modelName) {
+            const map = {
+                'Ixotrack': '#10b981',         // Esmeralda / Verde
+                'Ixotrack pro': '#3b82f6',     // Azul Claro
+                'IxotrackproM10': '#1d4ed8',   // Azul Oscuro
+                'IxotrackproM10LR': '#8b5cf6', // Morado
+                'Cowpro v2': '#ef4444',        // Rojo
+                'Gateway': '#f97316',          // Naranja
+                'Correas / Contrapesos': '#06b6d4', // Cyan
+                'Otro': '#64748b'              // Gris
+            };
+            return map[modelName] || '#64748b';
+        }
+
         window.allTasks = [];
         window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
         window.currentModalTasks = [];
@@ -644,7 +659,7 @@
                    p.includes('correa') || p.includes('contrapeso');
         }
 
-        // DESGLOSE INTERNO DE MODELOS (Sin duplicar tiquets)
+        // DESGLOSE INTERNO DE MODELOS
         function parseTaskModels(taskName) {
             if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
             
@@ -909,14 +924,17 @@
             if(charts.etiquetas) charts.etiquetas.destroy();
             if(charts.rendimiento) charts.rendimiento.destroy();
 
+            const modelosLabels = Object.keys(agrupacionModelos);
+            const modelosColors = modelosLabels.map(m => getModelColorHex(m));
+
             const ctxModelos = document.getElementById('chartModelos').getContext('2d');
             charts.modelos = new Chart(ctxModelos, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(agrupacionModelos),
+                    labels: modelosLabels,
                     datasets: [{
                         data: Object.values(agrupacionModelos),
-                        backgroundColor: ['#10b981', '#3b82f6', '#1d4ed8', '#8b5cf6', '#ef4444', '#f97316', '#06b6d4', '#64748b'],
+                        backgroundColor: modelosColors,
                         borderWidth: 0,
                         hoverOffset: 6
                     }]
@@ -1032,7 +1050,7 @@
                     }
                 }
 
-                // Kits Solares & GWs A PREPARAR (Solo tiquets pendientes dentro de los 7 días L-V)
+                // Kits Solares & GWs A PREPARAR
                 if (!completed && !t.esSoloRecibir && t.dateInfo.isWithinWindow && t.kitsSolaresGW > 0) {
                     totalKitsGWs += t.kitsSolaresGW;
                 }
