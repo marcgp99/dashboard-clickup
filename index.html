@@ -12,7 +12,7 @@
                 extend: { 
                     colors: { 
                         slate: { 850: '#131b2e', 900: '#0b1329', 950: '#020617' },
-                        brand: { blue: '#3b82f6', emerald: '#10b981', purple: '#8b5cf6', amber: '#f59e0b', orange: '#f97316' }
+                        brand: { blue: '#3b82f6', emerald: '#10b981', purple: '#8b5cf6', amber: '#f59e0b', orange: '#f97316', red: '#ef4444', cyan: '#06b6d4' }
                     },
                     fontFamily: { 
                         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -64,6 +64,11 @@
             box-shadow: -4px 0 20px -2px rgba(249, 115, 22, 0.3) !important;
         }
 
+        .glow-cyan {
+            border-left: 4px solid #06b6d4 !important;
+            box-shadow: -4px 0 20px -2px rgba(6, 182, 212, 0.3) !important;
+        }
+
         .table-row-hover {
             transition: background-color 0.15s ease;
         }
@@ -88,7 +93,7 @@
 </head>
 <body class="min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
 
-    <!-- PANTALLA DE BLOQUEO POR PIN (SECURITY OVERLAY) -->
+    <!-- PANTALLA DE BLOQUEO POR PIN -->
     <div id="pin-overlay" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden">
             <div class="w-12 h-12 bg-blue-500/10 border border-blue-500/30 rounded-xl text-brand-blue flex items-center justify-center mx-auto mb-4 text-xl">
@@ -112,7 +117,7 @@
         </div>
     </div>
 
-    <!-- HEADER BI HIGH-TECH CON MONITOR DE CAPACIDAD OBJETIVO -->
+    <!-- HEADER BI -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
         <div>
             <div class="flex items-center gap-3">
@@ -121,7 +126,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v2.8 SECURE</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.0 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -129,7 +134,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR CAPACIDAD 600 UDS -->
+            <!-- MONITOR CAPACIDAD OBJETIVO -->
             <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
                 <div class="flex items-center gap-2 text-emerald-400 font-semibold">
                     <i class="fa-solid fa-truck-ramp-box text-sm animate-pulse"></i>
@@ -164,22 +169,22 @@
 
     <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <!-- KPIs PRINCIPALES (5 COLUMNAS EN PANTALLAS GRANDES) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
             <!-- Próximos 7 Días Lab. -->
-            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
+            <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !t.esAccesorio && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>A Fabricar (7 Días Lab.)</span>
+                    <span>A Fabricar (7 Días)</span>
                     <i class="fa-solid fa-calendar-week text-slate-500"></i>
                 </p>
                 <div class="flex justify-between items-baseline">
-                    <h2 id="kpi-semana" class="text-4xl font-extrabold text-white font-mono tracking-tight">0</h2>
+                    <h2 id="kpi-semana" class="text-3xl font-extrabold text-white font-mono tracking-tight">0</h2>
                     <span class="text-xs text-slate-500 font-medium">unidades</span>
                 </div>
             </div>
 
             <!-- Fabricar Hoy -->
-            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir && !isTaskCompleted(t)), true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-amber">
+            <div onclick="openModal('A Fabricar (Hoy)', window.allTasks.filter(t => t.dateInfo.isTodayOrOverdue && !t.esSoloRecibir && !t.esAccesorio && !isTaskCompleted(t)), true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-amber">
                 <div class="flex justify-between items-start mb-2">
                     <p class="text-amber-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
                         <span>A Fabricar (Hoy)</span>
@@ -190,7 +195,7 @@
                     <i class="fa-solid fa-stopwatch text-amber-400"></i>
                 </div>
                 <div class="flex justify-between items-baseline">
-                    <h2 id="kpi-hoy" class="text-4xl font-extrabold text-amber-400 font-mono tracking-tight">0</h2>
+                    <h2 id="kpi-hoy" class="text-3xl font-extrabold text-amber-400 font-mono tracking-tight">0</h2>
                     <span class="text-xs text-amber-500/80 font-medium">pendientes</span>
                 </div>
             </div>
@@ -202,7 +207,7 @@
                     <i class="fa-solid fa-gears text-emerald-400"></i>
                 </p>
                 <div class="flex justify-between items-baseline">
-                    <h2 id="kpi-encurso" class="text-4xl font-extrabold text-emerald-400 font-mono tracking-tight">0</h2>
+                    <h2 id="kpi-encurso" class="text-3xl font-extrabold text-emerald-400 font-mono tracking-tight">0</h2>
                     <span class="text-xs text-emerald-500/80 font-medium">en mesa</span>
                 </div>
             </div>
@@ -214,8 +219,20 @@
                     <i class="fa-solid fa-router text-orange-400"></i>
                 </p>
                 <div class="flex justify-between items-baseline">
-                    <h2 id="kpi-gw" class="text-4xl font-extrabold text-orange-400 font-mono tracking-tight">0</h2>
+                    <h2 id="kpi-gw" class="text-3xl font-extrabold text-orange-400 font-mono tracking-tight">0</h2>
                     <span class="text-xs text-orange-500/80 font-medium">listos</span>
+                </div>
+            </div>
+
+            <!-- NUEVO KPI: Correas y Contrapesos -->
+            <div onclick="openModal('Correas y Contrapesos', window.allTasks.filter(t => t.esAccesorio))" class="bi-kpi-card rounded-2xl p-5 relative group glow-cyan">
+                <p class="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Correas y Contrapesos</span>
+                    <i class="fa-solid fa-weight-hanging text-cyan-400"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-accesorios" class="text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-cyan-500/80 font-medium">unidades</span>
                 </div>
             </div>
         </div>
@@ -252,9 +269,9 @@
             </div>
         </div>
 
-        <!-- CAJAS NUMÉRICAS DE HARDWARE POR MODELO -->
-        <div class="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+        <!-- CAJAS NUMÉRICAS DE HARDWARE POR MODELO (5 MODELOS) -->
+        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div onclick="openModal('Ixotrack (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
                 <div class="flex items-center gap-2.5">
                     <span class="w-3 h-3 rounded-full bg-brand-emerald shadow-lg shadow-emerald-500/50"></span>
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Ixotrack</span>
@@ -262,7 +279,7 @@
                 <span id="mod-ixo" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
 
-            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+            <div onclick="openModal('Ixotrack pro (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Ixotrack pro' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
                 <div class="flex items-center gap-2.5">
                     <span class="w-3 h-3 rounded-full bg-brand-blue shadow-lg shadow-blue-500/50"></span>
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Ixotrack pro</span>
@@ -270,7 +287,7 @@
                 <span id="mod-pro" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
 
-            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+            <div onclick="openModal('IxotrackproM10 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
                 <div class="flex items-center gap-2.5">
                     <span class="w-3 h-3 rounded-full bg-blue-700 shadow-lg shadow-blue-700/50"></span>
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white">IxotrackproM10</span>
@@ -278,12 +295,21 @@
                 <span id="mod-m10" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
 
-            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+            <div onclick="openModal('IxotrackproM10LR (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'IxotrackproM10LR' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
                 <div class="flex items-center gap-2.5">
                     <span class="w-3 h-3 rounded-full bg-brand-purple shadow-lg shadow-purple-500/50"></span>
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white">IxotrackproM10LR</span>
                 </div>
                 <span id="mod-m10lr" class="text-2xl font-bold font-mono text-white">0</span>
+            </div>
+
+            <!-- NUEVO MODELO: Cowpro v2 -->
+            <div onclick="openModal('Cowpro v2 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Cowpro v2' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50"></span>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white">Cowpro v2</span>
+                </div>
+                <span id="mod-cowpro" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
         </div>
 
@@ -301,7 +327,7 @@
                     <button onclick="setTableFilter('ALL')" id="tab-ALL" class="tab-btn active px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white">Todos</button>
                     <button onclick="setTableFilter('URGENT')" id="tab-URGENT" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-fire text-red-400"></i> Urgentes</button>
                     <button onclick="setTableFilter('ENVIO')" id="tab-ENVIO" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-truck-fast text-blue-400"></i> Envíos</button>
-                    <button onclick="setTableFilter('REEMPLAZO')" id="tab-REEMPLAZO" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-rotate-left text-red-400"></i> Reemplazos</button>
+                    <button onclick="setTableFilter('REEMPLAZO')" id="tab-REEMPLAZO" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-rotate-left text-amber-400"></i> Reemplazos</button>
                     <button onclick="setTableFilter('SOLO_RECIBIR')" id="tab-SOLO_RECIBIR" class="tab-btn px-3 py-1 rounded-lg font-medium text-slate-400 hover:text-white flex items-center gap-1"><i class="fa-solid fa-inbox text-emerald-400"></i> Sólo Recibir</button>
                 </div>
             </div>
@@ -378,7 +404,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT Y CONTROL DE ACCESO PIN -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter, sans-serif';
@@ -426,9 +452,10 @@
             return false;
         }
 
+        // COLORES DE ETIQUETAS (REEMPLAZO -> AMARILLO #f59e0b)
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (t.includes("REEMPLAZO")) return '#ef4444';
+            if (t.includes("REEMPLAZO")) return '#f59e0b'; // CAMBIADO A AMARILLO/AMBER
             if (t.includes("SOLO RECIBIR")) return '#10b981';
             if (t.includes("ENVIO")) return '#3b82f6';
             if (t.includes("SIN ETIQUETA")) return '#64748b';
@@ -438,7 +465,7 @@
         function getTagHtml(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) {
-                return `<span class="inline-block bg-red-500/20 text-red-300 border border-red-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
+                return `<span class="inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
             } else if (t.includes("SOLO RECIBIR")) {
                 return `<span class="inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
             } else if (t.includes("ENVIO")) {
@@ -451,6 +478,10 @@
             if (task.esSoloRecibir) {
                 return '<span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-inbox"></i>Sólo Recibir</span>';
             }
+            const hasReemplazo = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("REEMPLAZO"));
+            if (hasReemplazo) {
+                return '<span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-rotate-left"></i>Reemplazo</span>';
+            }
             const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
             if (hasEnvio) {
                 return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-truck-fast"></i>Envíos</span>';
@@ -461,36 +492,14 @@
             return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
-        function parseDispositivos(task, modeloNombre) {
-            const name = task.name || '';
-            const desc = task.description || '';
-
-            if (modeloNombre === 'Gateway') {
-                const matchGwNum = name.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) || 
-                                   desc.match(/\bx?(\d+)\s*(gw|gateway|gateways|antena|antenas)\b/i) ||
-                                   name.match(/\b(gw|gateway|gateways|antena|antenas)\s*x?(\d+)\b/i);
-                if (matchGwNum) {
-                    const qty = parseInt(matchGwNum[1] || matchGwNum[2], 10);
-                    return qty > 0 ? qty : 1;
-                }
-                return 1;
-            }
-
-            if (desc) {
-                const matchDesc = desc.match(/Nº\s*dispositivos:\s*(\d+)/i);
-                if (matchDesc) return parseInt(matchDesc[1], 10);
-            }
-            if (name) {
-                const matchTitle = name.match(/^x(\d+)/i) || name.match(/\bx(\d+)\b/i);
-                if (matchTitle) return parseInt(matchTitle[1], 10);
-            }
-            return 1; 
-        }
-
+        // DETECCIÓN Y PARSING DE MODELOS E ÍTEMS (INCLUYE COWPRO V2 ROJO)
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
-            const n = taskName.toLowerCase();
+            const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             
+            if (taskName.includes('🟥') || n.includes('cowpro') || n.includes('caupro')) {
+                return { nombre: 'Cowpro v2', color: 'red', hex: '#ef4444' };
+            }
             if (taskName.includes('🟩') || (n.includes('ixotrack') && !n.includes('pro'))) {
                 return { nombre: 'Ixotrack', color: 'emerald', hex: '#10b981' };
             }
@@ -505,11 +514,75 @@
             if (n.includes('m10')) return { nombre: 'IxotrackproM10', color: 'blue', hex: '#1d4ed8' };
             if (n.includes('ixotrack pro') || n.includes('ixotrackpro')) return { nombre: 'Ixotrack pro', color: 'blue', hex: '#3b82f6' };
 
+            if (n.includes("correa") || n.includes("contrapeso")) {
+                return { nombre: 'Correas / Contrapesos', color: 'cyan', hex: '#06b6d4' };
+            }
+
             if (n.match(/\bgw\b/) || n.includes('gateway') || n.includes('antena')) {
                 return { nombre: 'Gateway', color: 'orange', hex: '#f97316' };
             }
 
             return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
+        }
+
+        function isKnownModelPart(part) {
+            const p = part.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return part.includes('🟩') || part.includes('🟪') || part.includes('🟦') || part.includes('🟥') ||
+                   p.includes('ixotrack') || p.includes('m10') || p.includes('cowpro') || p.includes('caupro') ||
+                   p.includes('gw') || p.includes('gateway') || p.includes('antena') ||
+                   p.includes('correa') || p.includes('contrapeso');
+        }
+
+        // DESGLOSE INTELIGENTE DE TIQUETS COMPUESTOS (DOBLE MODELO O "+" EN TÍTULO)
+        function parseTaskSegments(taskName) {
+            if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
+            
+            const parts = taskName.split('+');
+            const validParts = parts.map(p => p.trim()).filter(p => isKnownModelPart(p));
+
+            if (validParts.length > 1) {
+                return validParts.map(p => {
+                    const mod = parseModelo(p);
+                    let qty = 1;
+                    const nLower = p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    const isAccesorio = nLower.includes('correa') || nLower.includes('contrapeso');
+
+                    if (mod.nombre === 'Gateway') {
+                        const matchGw = p.match(/\bx?(\d+)\s*(gw|gateway|antena)/i) || p.match(/\b(gw|gateway|antena)\s*x?(\d+)/i);
+                        if (matchGw) qty = parseInt(matchGw[1] || matchGw[2], 10);
+                    } else {
+                        const matchQty = p.match(/\bx?(\d+)\b/i);
+                        if (matchQty) qty = parseInt(matchQty[1], 10);
+                    }
+
+                    return {
+                        text: p,
+                        unidades: qty > 0 ? qty : 1,
+                        modeloInfo: mod,
+                        esAccesorio: isAccesorio
+                    };
+                });
+            } else {
+                const mod = parseModelo(taskName);
+                let qty = 1;
+                const nLower = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const isAccesorio = nLower.includes('correa') || nLower.includes('contrapeso');
+
+                if (mod.nombre === 'Gateway') {
+                    const matchGw = taskName.match(/\bx?(\d+)\s*(gw|gateway|antena)/i) || taskName.match(/\b(gw|gateway|antena)\s*x?(\d+)/i);
+                    if (matchGw) qty = parseInt(matchGw[1] || matchGw[2], 10);
+                } else {
+                    const matchQty = taskName.match(/^x(\d+)/i) || taskName.match(/\bx(\d+)\b/i);
+                    if (matchQty) qty = parseInt(matchQty[1], 10);
+                }
+
+                return [{
+                    text: taskName,
+                    unidades: qty > 0 ? qty : 1,
+                    modeloInfo: mod,
+                    esAccesorio: isAccesorio
+                }];
+            }
         }
 
         function getEndOfBusinessDays(startDate, days) {
@@ -555,38 +628,44 @@
         }
 
         function normalizeTasks(rawTasks) {
-            return rawTasks.map(task => {
+            let normalized = [];
+            rawTasks.forEach(task => {
                 const esSoloRecibir = checkSoloRecibir(task);
-                const modeloInfo = parseModelo(task.name);
-                const unidadesBrutas = parseDispositivos(task, modeloInfo.nombre);
-                const unidadesContables = esSoloRecibir ? 0 : unidadesBrutas;
-                
-                const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
-                const dateInfo = parseFechas(task.due_date);
-                const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
-                
-                const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
-                    ? task.tags.map(t => t.name.toUpperCase()) 
-                    : [];
+                const segments = parseTaskSegments(task.name);
 
-                const closedTimestamp = task.date_closed ? parseInt(task.date_closed, 10) : (task.date_updated ? parseInt(task.date_updated, 10) : 0);
+                segments.forEach((seg, idx) => {
+                    const unidadesBrutas = seg.unidades;
+                    const unidadesContables = (esSoloRecibir || seg.esAccesorio) ? 0 : unidadesBrutas;
+                    const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
+                    const dateInfo = parseFechas(task.due_date);
+                    const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
+                    
+                    const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
+                        ? task.tags.map(t => t.name.toUpperCase()) 
+                        : [];
 
-                return {
-                    id: task.id,
-                    nombre: task.name,
-                    unidades: unidadesContables,
-                    unidadesBrutas: unidadesBrutas,
-                    esSoloRecibir: esSoloRecibir,
-                    modeloInfo: modeloInfo,
-                    estado: estado,
-                    estadoColor: task.status ? task.status.color : '#64748b',
-                    dateInfo: dateInfo,
-                    etiquetas: arrayEtiquetas,
-                    timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
-                    closedTimestamp: closedTimestamp,
-                    prioridadNum: prioridad
-                };
+                    const closedTimestamp = task.date_closed ? parseInt(task.date_closed, 10) : (task.date_updated ? parseInt(task.date_updated, 10) : 0);
+
+                    normalized.push({
+                        id: task.id + (segments.length > 1 ? `_${idx}` : ''),
+                        nombre: segments.length > 1 ? `${task.name} [${seg.modeloInfo.nombre}: ${seg.unidades}uds]` : task.name,
+                        nombreOriginal: task.name,
+                        unidades: unidadesContables,
+                        unidadesBrutas: unidadesBrutas,
+                        esSoloRecibir: esSoloRecibir,
+                        esAccesorio: seg.esAccesorio,
+                        modeloInfo: seg.modeloInfo,
+                        estado: estado,
+                        estadoColor: task.status ? task.status.color : '#64748b',
+                        dateInfo: dateInfo,
+                        etiquetas: arrayEtiquetas,
+                        timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
+                        closedTimestamp: closedTimestamp,
+                        prioridadNum: prioridad
+                    });
+                });
             });
+            return normalized;
         }
 
         async function fetchClickUpData() {
@@ -636,13 +715,13 @@
             let modelsData = {};
             
             window.allTasks.forEach(task => {
-                if (task.esSoloRecibir) return; 
+                if (task.esSoloRecibir || task.esAccesorio) return; 
                 if (isTaskCompleted(task)) return;
                 if (!task.dateInfo.isWithinWindow) return; 
                 
                 const model = task.modeloInfo.nombre;
                 const modelHex = task.modeloInfo.hex;
-                if (model === 'Otro' || model === 'Gateway') return;
+                if (model === 'Otro' || model === 'Gateway' || model === 'Correas / Contrapesos') return;
                 
                 if (!modelsData[model]) {
                     modelsData[model] = { todayUnits: 0, futureUnits: 0, futureTickets: [], hex: modelHex };
@@ -703,7 +782,7 @@
                     labels: Object.keys(agrupacionModelos),
                     datasets: [{
                         data: Object.values(agrupacionModelos),
-                        backgroundColor: ['#10b981', '#3b82f6', '#1d4ed8', '#8b5cf6', '#f97316', '#64748b'],
+                        backgroundColor: ['#10b981', '#3b82f6', '#1d4ed8', '#8b5cf6', '#ef4444', '#f97316', '#06b6d4', '#64748b'],
                         borderWidth: 0,
                         hoverOffset: 6
                     }]
@@ -784,9 +863,10 @@
             let totalSemana = 0;
             let totalHoy = 0;
             let totalGWListos = 0;
+            let totalAccesorios = 0;
             let enCursoCount = 0;
             
-            let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Gateway': 0, 'Otro': 0 };
+            let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Cowpro v2': 0, 'Gateway': 0, 'Otro': 0 };
             let statsTiempos = { 'Hoy/Atrasado': 0, 'Próx. 7 Días Lab.': 0, 'Futuro': 0, 'Sin Fecha': 0 };
             let statsEtiquetas = {}; 
 
@@ -801,7 +881,7 @@
             window.allTasks.forEach(t => {
                 const completed = isTaskCompleted(t);
 
-                if (completed && !t.esSoloRecibir && t.closedTimestamp > 0) {
+                if (completed && !t.esSoloRecibir && !t.esAccesorio && t.closedTimestamp > 0) {
                     if (t.closedTimestamp >= w0.start && t.closedTimestamp <= w0.end) {
                         outputW0 += t.unidadesBrutas;
                         window.weekTasksMap.w0.push(t);
@@ -817,7 +897,8 @@
                     }
                 }
 
-                if (!t.esSoloRecibir && !completed) {
+                // Trabajo de Dispositivos Principales
+                if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
                     
@@ -829,6 +910,11 @@
                     if (statsTiempos[t.dateInfo.category] !== undefined) {
                         statsTiempos[t.dateInfo.category] += t.unidades;
                     }
+                }
+
+                // Conteo Independiente de Correas y Contrapesos
+                if (t.esAccesorio) {
+                    totalAccesorios += t.unidadesBrutas;
                 }
 
                 if (t.modeloInfo.nombre === 'Gateway' && completed) {
@@ -873,11 +959,13 @@
             document.getElementById('kpi-hoy').innerText = totalHoy;
             document.getElementById('kpi-encurso').innerText = enCursoCount;
             document.getElementById('kpi-gw').innerText = totalGWListos;
+            document.getElementById('kpi-accesorios').innerText = totalAccesorios;
 
             document.getElementById('mod-ixo').innerText = statsModelos['Ixotrack'];
             document.getElementById('mod-pro').innerText = statsModelos['Ixotrack pro'];
             document.getElementById('mod-m10').innerText = statsModelos['IxotrackproM10'];
             document.getElementById('mod-m10lr').innerText = statsModelos['IxotrackproM10LR'];
+            document.getElementById('mod-cowpro').innerText = statsModelos['Cowpro v2'];
             
             const activeTicketsCount = window.allTasks.filter(t => !isTaskCompleted(t)).length;
             document.getElementById('task-count-badge').innerText = `${activeTicketsCount} ACTIVOS`;
@@ -923,7 +1011,7 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="table-row-hover border-b border-slate-800/60 transition-colors ${task.esSoloRecibir ? 'opacity-60' : ''}">
+                    <tr class="table-row-hover border-b border-slate-800/60 transition-colors ${task.esSoloRecibir || task.esAccesorio ? 'opacity-60' : ''}">
                         <td class="py-3.5 px-4 align-top pt-4">
                             ${getPriorityHtml(task)}
                         </td>
@@ -936,8 +1024,8 @@
                                 <span class="w-2 h-2 rounded-full" style="background-color: ${task.modeloInfo.hex}"></span>${task.modeloInfo.nombre}
                             </span>
                         </td>
-                        <td class="py-3.5 px-4 text-center align-top pt-4 font-bold text-sm font-mono ${task.esSoloRecibir ? 'text-slate-500 line-through' : 'text-white'}">
-                            ${task.esSoloRecibir ? `0 (${task.unidadesBrutas})` : task.unidades}
+                        <td class="py-3.5 px-4 text-center align-top pt-4 font-bold text-sm font-mono ${task.esSoloRecibir || task.esAccesorio ? 'text-slate-500 line-through' : 'text-white'}">
+                            ${task.esSoloRecibir || task.esAccesorio ? `0 (${task.unidadesBrutas})` : task.unidades}
                         </td>
                         <td class="py-3.5 px-4 align-top pt-4">
                             <span class="px-2.5 py-0.5 text-[9px] rounded-md font-bold uppercase tracking-wider" style="background-color: ${task.estadoColor}15; color: ${task.estadoColor}; border: 1px solid ${task.estadoColor}30">
@@ -1035,13 +1123,13 @@
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir ? 'opacity-60' : ''}">
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir || t.esAccesorio ? 'opacity-60' : ''}">
                         <td class="py-3 pr-4">
                             <div class="font-semibold text-slate-200 text-xs">${t.nombre}</div>
                             <div class="flex flex-wrap gap-1 mt-1">${etiquetasHtml}</div>
                         </td>
                         <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400 font-medium"><span class="w-2 h-2 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
-                        <td class="py-3 px-4 align-top pt-4 text-center font-bold font-mono text-sm ${t.esSoloRecibir ? 'text-slate-500' : 'text-white'}">
+                        <td class="py-3 px-4 align-top pt-4 text-center font-bold font-mono text-sm ${t.esSoloRecibir || t.esAccesorio ? 'text-slate-500' : 'text-white'}">
                             ${unitsShow}
                         </td>
                         <td class="py-3 pl-4 align-top pt-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
@@ -1071,7 +1159,7 @@
             }, 300);
         }
 
-        // INICIALIZACIÓN CON VERIFICACIÓN DE PIN
+        // INICIALIZACIÓN
         checkPinAuth();
         setInterval(fetchClickUpData, 60000);
     </script>
