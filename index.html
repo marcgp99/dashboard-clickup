@@ -133,7 +133,7 @@
         </div>
     </div>
 
-    <!-- HEADER BI -->
+    <!-- HEADER BI CON DOS MONITORES DE CONTROL -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
         <div>
             <div class="flex items-center gap-3">
@@ -142,7 +142,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.3 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.5 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -150,7 +150,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR CAPACIDAD OBJETIVO -->
+            <!-- MONITOR 1: CAPACIDAD OBJETIVO ENVÍOS (600 UDS) -->
             <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
                 <div class="flex items-center gap-2 text-emerald-400 font-semibold">
                     <i class="fa-solid fa-truck-ramp-box text-sm animate-pulse"></i>
@@ -158,10 +158,23 @@
                     <strong id="header-output-week" class="text-white text-base font-mono font-bold">0</strong>
                     <span class="text-slate-500">/ 600 uds</span>
                 </div>
-                <div class="w-20 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
+                <div class="w-16 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
                     <div id="header-progress-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
                 <span id="header-output-var" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0%</span>
+            </div>
+
+            <!-- MONITOR 2: CAPACIDAD POR FAMILIAS DE HARDWARE (Ixotrack: 50 | Pro: 300 | Cowpro v2: 1000) -->
+            <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
+                <div class="flex items-center gap-2 text-cyan-400 font-semibold">
+                    <i class="fa-solid fa-headset text-sm"></i>
+                    <span>Capacidad Familias:</span>
+                    <strong id="header-soporte-units" class="text-white text-xs font-mono font-bold">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
+                </div>
+                <div class="w-16 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
+                    <div id="header-soporte-bar" class="bg-cyan-500 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="header-soporte-status" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Disponible</span>
             </div>
 
             <!-- RELOJ SINCRO -->
@@ -228,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- KPI CORREGIDO Y A CORTO PLAZO: Kits Solares & GWs a Preparar -->
+            <!-- Kits Solares & GWs a Preparar -->
             <div onclick="openModal('Kits Solares y Gateways a Preparar (Próx 7 Días)', window.allTasks.filter(t => t.kitsSolaresGW > 0 && t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)), false, true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-blue">
                 <p class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Kits Solares & GWs</span>
@@ -452,6 +465,11 @@
         let charts = {};
 
         const CAPACIDAD_OBJETIVO_SEMANAL = 600; 
+        
+        // REGLAS ESPECÍFICAS DE LÍMITES POR FAMILIAS DE HARDWARE
+        const CAPACIDAD_IXOTRACK = 50;
+        const CAPACIDAD_PRO_SERIES = 300; // Ixotrack pro + IxotrackproM10 + IxotrackproM10LR
+        const CAPACIDAD_COWPRO = 1000;
 
         window.allTasks = [];
         window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
@@ -550,14 +568,13 @@
             return "Cliente General";
         }
 
-        // PARSER ESPECÍFICO Y PRECISO PARA KITS SOLARES, ANTENAS Y GATEWAYS
+        // PARSER ESPECÍFICO PARA KITS SOLARES, ANTENAS Y GATEWAYS
         function parseKitsSolaresGW(taskName, description) {
             const text = ((taskName || '') + ' ' + (description || '')).trim();
             if (!text) return { found: false, qty: 0, tipo: '' };
 
             const textNorm = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-            // 1. Coincidencia exacta con multiplicador explícito: e.g. "x12 AE", "1AS", "2 AS", "x2 GW", "3 Gateways", "1 Kit Solar"
             const matchAsAe = textNorm.match(/\b(?:x|x\s*)?(\d+)\s*(as|ae|gw|gateways?|antenas?\s*solares?|antenas?\s*enchufables?|kits?\s*solares?|panels?\s*solares?)\b/i);
             if (matchAsAe) {
                 const qty = parseInt(matchAsAe[1], 10);
@@ -571,7 +588,6 @@
                 return { found: true, qty: qty > 0 ? qty : 1, tipo: tipo };
             }
 
-            // 2. Coincidencia con palabras clave aisladas por palabra completa (sin falsos positivos)
             const matchKw = textNorm.match(/\b(1as|2as|3as|1ae|2ae|3ae|gw|gateway|gateways|panel\s+solar|antena\s+solar|antena\s+enchufable|kit\s+solar|milesight|rak)\b/i);
             if (matchKw) {
                 const kw = matchKw[1].toLowerCase();
@@ -587,7 +603,7 @@
             return { found: false, qty: 0, tipo: '' };
         }
 
-        // DETECCIÓN DE MODELOS DE DISPOSITIVOS
+        // DETECCIÓN DE MODELOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -628,7 +644,7 @@
                    p.includes('correa') || p.includes('contrapeso');
         }
 
-        // DESGLOSE INTERNO DE MODELOS (Mantiene 1 sola fila en la tabla)
+        // DESGLOSE INTERNO DE MODELOS (Sin duplicar tiquets)
         function parseTaskModels(taskName) {
             if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
             
@@ -1016,7 +1032,7 @@
                     }
                 }
 
-                // CORREGIDO: Kits Solares & GWs A PREPARAR (Solo tiquets pendientes dentro de los 7 días L-V)
+                // Kits Solares & GWs A PREPARAR (Solo tiquets pendientes dentro de los 7 días L-V)
                 if (!completed && !t.esSoloRecibir && t.dateInfo.isWithinWindow && t.kitsSolaresGW > 0) {
                     totalKitsGWs += t.kitsSolaresGW;
                 }
@@ -1063,9 +1079,9 @@
                 }
             });
 
+            // 1. MONITOR ENVÍOS SEMANALES
             document.getElementById('header-output-week').innerText = outputW0;
             const pctCapacidad = Math.min(Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100), 100);
-            
             const progressBar = document.getElementById('header-progress-bar');
             if (progressBar) progressBar.style.width = `${pctCapacidad}%`;
 
@@ -1080,6 +1096,42 @@
             } else {
                 badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30`;
                 if (progressBar) progressBar.className = "bg-red-500 h-full transition-all duration-500";
+            }
+
+            // 2. MONITOR CAPACIDAD POR FAMILIAS DE HARDWARE
+            const unitsIxo = statsModelos['Ixotrack'] || 0;
+            const unitsPro = (statsModelos['Ixotrack pro'] || 0) + (statsModelos['IxotrackproM10'] || 0) + (statsModelos['IxotrackproM10LR'] || 0);
+            const unitsCowpro = statsModelos['Cowpro v2'] || 0;
+
+            const pctIxo = Math.round((unitsIxo / CAPACIDAD_IXOTRACK) * 100);
+            const pctPro = Math.round((unitsPro / CAPACIDAD_PRO_SERIES) * 100);
+            const pctCowpro = Math.round((unitsCowpro / CAPACIDAD_COWPRO) * 100);
+
+            const maxPctFamily = Math.max(pctIxo, pctPro, pctCowpro);
+
+            document.getElementById('header-soporte-units').innerText = `Ixo: ${unitsIxo}/${CAPACIDAD_IXOTRACK} | Pro: ${unitsPro}/${CAPACIDAD_PRO_SERIES} | Cow: ${unitsCowpro}/${CAPACIDAD_COWPRO}`;
+
+            const soporteBar = document.getElementById('header-soporte-bar');
+            if (soporteBar) soporteBar.style.width = `${Math.min(maxPctFamily, 100)}%`;
+
+            const soporteStatus = document.getElementById('header-soporte-status');
+            if (unitsIxo >= CAPACIDAD_IXOTRACK || unitsPro >= CAPACIDAD_PRO_SERIES || unitsCowpro >= CAPACIDAD_COWPRO) {
+                let saturated = [];
+                if (unitsIxo >= CAPACIDAD_IXOTRACK) saturated.push('Ixotrack');
+                if (unitsPro >= CAPACIDAD_PRO_SERIES) saturated.push('Pro');
+                if (unitsCowpro >= CAPACIDAD_COWPRO) saturated.push('Cowpro v2');
+
+                soporteStatus.innerText = `Cupo Lleno (${saturated.join(', ')})`;
+                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse`;
+                if (soporteBar) soporteBar.className = "bg-red-500 h-full transition-all duration-500";
+            } else if (pctIxo >= 80 || pctPro >= 80 || pctCowpro >= 80) {
+                soporteStatus.innerText = "Cerca del Límite";
+                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30`;
+                if (soporteBar) soporteBar.className = "bg-amber-500 h-full transition-all duration-500";
+            } else {
+                soporteStatus.innerText = "Disponible";
+                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`;
+                if (soporteBar) soporteBar.className = "bg-cyan-500 h-full transition-all duration-500";
             }
 
             document.getElementById('kpi-semana').innerText = totalSemana;
