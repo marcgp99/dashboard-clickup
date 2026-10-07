@@ -126,7 +126,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.0 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.1 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -169,7 +169,7 @@
 
     <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES (5 COLUMNAS EN PANTALLAS GRANDES) -->
+        <!-- KPIs PRINCIPALES (5 COLUMNAS) -->
         <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
             <!-- Próximos 7 Días Lab. -->
             <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !t.esAccesorio && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
@@ -224,15 +224,15 @@
                 </div>
             </div>
 
-            <!-- NUEVO KPI: Correas y Contrapesos -->
-            <div onclick="openModal('Correas y Contrapesos', window.allTasks.filter(t => t.esAccesorio))" class="bi-kpi-card rounded-2xl p-5 relative group glow-cyan">
+            <!-- KPI EXCLUSIVO: Reemplazos de Correas y Contrapesos -->
+            <div onclick="openModal('Reemplazos de Correas y Contrapesos', window.allTasks.filter(t => t.esAccesorio))" class="bi-kpi-card rounded-2xl p-5 relative group glow-cyan">
                 <p class="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>Correas y Contrapesos</span>
+                    <span>Correas / Contrapesos</span>
                     <i class="fa-solid fa-weight-hanging text-cyan-400"></i>
                 </p>
                 <div class="flex justify-between items-baseline">
                     <h2 id="kpi-accesorios" class="text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">0</h2>
-                    <span class="text-xs text-cyan-500/80 font-medium">unidades</span>
+                    <span class="text-xs text-cyan-500/80 font-medium">reemplazos</span>
                 </div>
             </div>
         </div>
@@ -303,7 +303,7 @@
                 <span id="mod-m10lr" class="text-2xl font-bold font-mono text-white">0</span>
             </div>
 
-            <!-- NUEVO MODELO: Cowpro v2 -->
+            <!-- MODELO: Cowpro v2 (ROJO) -->
             <div onclick="openModal('Cowpro v2 (7 Días Lab)', window.allTasks.filter(t => t.modeloInfo.nombre === 'Cowpro v2' && !t.esSoloRecibir && !t.esAccesorio && t.dateInfo.isWithinWindow && !isTaskCompleted(t)))" class="bi-panel p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800/80 transition group">
                 <div class="flex items-center gap-2.5">
                     <span class="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-500/50"></span>
@@ -404,7 +404,7 @@
         </div>
     </div>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT Y CONTROL DE ACCESO PIN -->
     <script>
         Chart.defaults.color = '#94a3b8';
         Chart.defaults.font.family = 'Inter, sans-serif';
@@ -455,7 +455,7 @@
         // COLORES DE ETIQUETAS (REEMPLAZO -> AMARILLO #f59e0b)
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (t.includes("REEMPLAZO")) return '#f59e0b'; // CAMBIADO A AMARILLO/AMBER
+            if (t.includes("REEMPLAZO")) return '#f59e0b';
             if (t.includes("SOLO RECIBIR")) return '#10b981';
             if (t.includes("ENVIO")) return '#3b82f6';
             if (t.includes("SIN ETIQUETA")) return '#64748b';
@@ -474,25 +474,21 @@
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
+        // PRIORIDAD ÚNICA Y ESTRICTA DESDE CLICKUP (Sin mezclar con etiquetas)
         function getPriorityHtml(task) {
-            if (task.esSoloRecibir) {
-                return '<span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-inbox"></i>Sólo Recibir</span>';
-            }
-            const hasReemplazo = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("REEMPLAZO"));
-            if (hasReemplazo) {
-                return '<span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-rotate-left"></i>Reemplazo</span>';
-            }
-            const hasEnvio = task.etiquetas.some(t => t.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("ENVIO"));
-            if (hasEnvio) {
-                return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-truck-fast"></i>Envíos</span>';
-            }
-            if (task.prioridadNum === 1) {
+            if (task.prioridadNum === 1 || task.prioridadLevel === 'urgent') {
                 return '<span class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-fire"></i>Urgente</span>';
             }
-            return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
+            if (task.prioridadNum === 2 || task.prioridadLevel === 'high') {
+                return '<span class="px-2.5 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-angles-up"></i>Alta</span>';
+            }
+            if (task.prioridadNum === 4 || task.prioridadLevel === 'low') {
+                return '<span class="px-2.5 py-1 bg-slate-800 text-slate-400 border border-slate-700/60 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-angle-down"></i>Baja</span>';
+            }
+            return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
-        // DETECCIÓN Y PARSING DE MODELOS E ÍTEMS (INCLUYE COWPRO V2 ROJO)
+        // DETECCIÓN DE MODELOS (INCLUYE COWPRO V2 ROJO)
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -545,7 +541,7 @@
                     const mod = parseModelo(p);
                     let qty = 1;
                     const nLower = p.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    const isAccesorio = nLower.includes('correa') || nLower.includes('contrapeso');
+                    const isAccesorio = (nLower.includes('correa') || nLower.includes('contrapeso')) && !nLower.includes('venta') && !nLower.includes('ixotrack') && !nLower.includes('m10');
 
                     if (mod.nombre === 'Gateway') {
                         const matchGw = p.match(/\bx?(\d+)\s*(gw|gateway|antena)/i) || p.match(/\b(gw|gateway|antena)\s*x?(\d+)/i);
@@ -566,7 +562,9 @@
                 const mod = parseModelo(taskName);
                 let qty = 1;
                 const nLower = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const isAccesorio = nLower.includes('correa') || nLower.includes('contrapeso');
+                
+                // Un tiquet es accesorio SOLO SI es específicamente de correas/contrapesos y no es una venta general de collares
+                const isAccesorio = (nLower.includes('correa') || nLower.includes('contrapeso')) && !nLower.includes('venta') && !nLower.includes('ixotrack') && !nLower.includes('m10');
 
                 if (mod.nombre === 'Gateway') {
                     const matchGw = taskName.match(/\bx?(\d+)\s*(gw|gateway|antena)/i) || taskName.match(/\b(gw|gateway|antena)\s*x?(\d+)/i);
@@ -633,12 +631,21 @@
                 const esSoloRecibir = checkSoloRecibir(task);
                 const segments = parseTaskSegments(task.name);
 
+                let priorityNum = 3; 
+                let priorityLevel = 'normal';
+                if (task.priority) {
+                    const p = String(task.priority.priority || '').toLowerCase();
+                    if (p === 'urgent' || p === '1') { priorityNum = 1; priorityLevel = 'urgent'; }
+                    else if (p === 'high' || p === '2') { priorityNum = 2; priorityLevel = 'high'; }
+                    else if (p === 'normal' || p === '3') { priorityNum = 3; priorityLevel = 'normal'; }
+                    else if (p === 'low' || p === '4') { priorityNum = 4; priorityLevel = 'low'; }
+                }
+
                 segments.forEach((seg, idx) => {
                     const unidadesBrutas = seg.unidades;
                     const unidadesContables = (esSoloRecibir || seg.esAccesorio) ? 0 : unidadesBrutas;
                     const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
                     const dateInfo = parseFechas(task.due_date);
-                    const prioridad = task.priority && (task.priority.priority === 'urgent' || task.priority.priority === '1') ? 1 : 0;
                     
                     const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
                         ? task.tags.map(t => t.name.toUpperCase()) 
@@ -661,7 +668,8 @@
                         etiquetas: arrayEtiquetas,
                         timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
                         closedTimestamp: closedTimestamp,
-                        prioridadNum: prioridad
+                        prioridadNum: priorityNum,
+                        prioridadLevel: priorityLevel
                     });
                 });
             });
@@ -692,7 +700,7 @@
 
                 const data = await response.json();
                 window.allTasks = normalizeTasks(data.tasks || []);
-                window.allTasks.sort((a, b) => b.prioridadNum - a.prioridadNum || a.timestamp - b.timestamp);
+                window.allTasks.sort((a, b) => a.prioridadNum - b.prioridadNum || a.timestamp - b.timestamp);
                 
                 updateDashboard();
                 document.getElementById('last-update').innerText = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -912,7 +920,7 @@
                     }
                 }
 
-                // Conteo Independiente de Correas y Contrapesos
+                // Conteo Exclusivo para Tiquets Específicos de Correas y Contrapesos
                 if (t.esAccesorio) {
                     totalAccesorios += t.unidadesBrutas;
                 }
@@ -1044,7 +1052,7 @@
             const mult = currentSort.dir === 'asc' ? 1 : -1;
 
             window.allTasks.sort((a, b) => {
-                if(col === 'prioridad') return (b.prioridadNum - a.prioridadNum) * mult;
+                if(col === 'prioridad') return (a.prioridadNum - b.prioridadNum) * mult;
                 if(col === 'unidades') return (a.unidades - b.unidades) * mult;
                 if(col === 'fecha') return (a.timestamp - b.timestamp) * mult;
                 if(col === 'nombre') return a.nombre.localeCompare(b.nombre) * mult;
@@ -1159,7 +1167,7 @@
             }, 300);
         }
 
-        // INICIALIZACIÓN
+        // INICIALIZACIÓN CON VERIFICACIÓN DE PIN
         checkPinAuth();
         setInterval(fetchClickUpData, 60000);
     </script>
