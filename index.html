@@ -94,6 +94,17 @@
             color: #ffffff;
             box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
         }
+
+        .client-chip {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .client-chip:hover, .client-chip.active {
+            background-color: #3b82f6 !important;
+            border-color: #60a5fa !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
     </style>
 </head>
 <body class="min-h-screen font-sans antialiased p-4 md:p-6 overflow-x-hidden">
@@ -131,7 +142,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.2 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.3 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -217,8 +228,8 @@
                 </div>
             </div>
 
-            <!-- NUEVO KPI: Kits Solares & Gateways a Preparar -->
-            <div onclick="openModal('Kits Solares y Gateways a Preparar', window.allTasks.filter(t => t.kitsSolaresGW > 0 && !isTaskCompleted(t)), false, true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-blue">
+            <!-- KPI CORREGIDO Y A CORTO PLAZO: Kits Solares & GWs a Preparar -->
+            <div onclick="openModal('Kits Solares y Gateways a Preparar (Próx 7 Días)', window.allTasks.filter(t => t.kitsSolaresGW > 0 && t.dateInfo.isWithinWindow && !t.esSoloRecibir && !isTaskCompleted(t)), false, true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-blue">
                 <p class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Kits Solares & GWs</span>
                     <i class="fa-solid fa-solar-panel text-blue-400"></i>
@@ -369,7 +380,7 @@
         </section>
     </main>
 
-    <!-- MODAL EMERGENTE -->
+    <!-- MODAL EMERGENTE CON FICHAS INTERACTIVAS DE CLIENTES -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeModal()"></div>
         
@@ -384,12 +395,17 @@
                 </button>
             </div>
 
-            <!-- CAJA ESPECIAL: DESGLOSE DE KITS SOLARES Y GATEWAYS POR CLIENTE -->
+            <!-- CAJA INTERACTIVA: DESGLOSE Y FILTRO POR CLIENTE -->
             <div id="modal-kits-client-box" class="hidden bg-blue-950/40 border-b border-blue-500/20 p-4 px-5">
-                <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2 text-xs uppercase tracking-wide">
-                    <i class="fa-solid fa-users"></i> Equipos / Kits Solares / GWs a enviar por Cliente
-                </h4>
-                <div id="modal-kits-client-list" class="flex flex-wrap gap-2"></div>
+                <div class="flex justify-between items-center mb-2.5">
+                    <h4 class="text-blue-400 font-bold flex items-center gap-2 text-xs uppercase tracking-wide">
+                        <i class="fa-solid fa-users"></i> Filtrar por Cliente (Haz clic para ver tiquets):
+                    </h4>
+                    <button onclick="filterModalByClient(null)" id="btn-client-all" class="text-[10px] bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 px-2 py-0.5 rounded border border-blue-500/30 transition">
+                        Ver Todos los Clientes
+                    </button>
+                </div>
+                <div id="modal-kits-client-list" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1"></div>
             </div>
 
             <!-- RESUMEN DE MODELOS EN MODAL -->
@@ -410,7 +426,7 @@
                     <thead class="sticky top-0 bg-slate-900">
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase tracking-wider font-semibold">
                             <th class="pb-3 pr-4">Tiquet / Etiquetas</th>
-                            <th class="pb-3 px-4">Modelo</th>
+                            <th class="pb-3 px-4">Modelo / Tipo</th>
                             <th class="pb-3 px-4 text-center">Uds</th>
                             <th class="pb-3 pl-4 text-right">Deadline</th>
                         </tr>
@@ -439,6 +455,8 @@
 
         window.allTasks = [];
         window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] }; 
+        window.currentModalTasks = [];
+        window.activeClientFilter = null;
         let currentSort = { column: 'fecha', dir: 'asc' };
         let currentTableFilter = 'ALL';
 
@@ -516,7 +534,7 @@
         // EXTRACCIÓN DE NOMBRE DE CLIENTE
         function parseClienteName(taskName) {
             if (!taskName) return "Cliente General";
-            const n = taskName.strip ? taskName.strip() : taskName.trim();
+            const n = taskName.trim();
             if (n.includes('-')) {
                 const parts = n.split('-');
                 if (parts.length > 1) {
@@ -532,22 +550,44 @@
             return "Cliente General";
         }
 
-        // CONTEO ESPECÍFICO DE KITS SOLARES, ANTENAS Y GATEWAYS DE SALIDA
+        // PARSER ESPECÍFICO Y PRECISO PARA KITS SOLARES, ANTENAS Y GATEWAYS
         function parseKitsSolaresGW(taskName, description) {
-            const text = ((taskName || '') + ' ' + (description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            
-            let qty = 0;
-            const matchGwNum = text.match(/(\d+)\s*(as|ae|antena\s*solar|antena\s*enchufable|panel\s*solar|gw|gateway|gateways|antenas)/i) ||
-                               text.match(/(gw|gateway|gateways|antena|antenas)\s*x?(\d+)/i);
-            if (matchGwNum) {
-                qty = parseInt(matchGwNum[1] || matchGwNum[2], 10);
-            } else if (text.includes('1as') || text.includes('as') || text.includes('1ae') || text.includes('ae') || text.includes('panel solar') || text.includes('gateway') || text.includes('gw')) {
-                qty = 1;
+            const text = ((taskName || '') + ' ' + (description || '')).trim();
+            if (!text) return { found: false, qty: 0, tipo: '' };
+
+            const textNorm = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+            // 1. Coincidencia exacta con multiplicador explícito: e.g. "x12 AE", "1AS", "2 AS", "x2 GW", "3 Gateways", "1 Kit Solar"
+            const matchAsAe = textNorm.match(/\b(?:x|x\s*)?(\d+)\s*(as|ae|gw|gateways?|antenas?\s*solares?|antenas?\s*enchufables?|kits?\s*solares?|panels?\s*solares?)\b/i);
+            if (matchAsAe) {
+                const qty = parseInt(matchAsAe[1], 10);
+                const unitType = matchAsAe[2].toLowerCase();
+                let tipo = "Gateway / Antena";
+                if (unitType.includes('as') || unitType.includes('panel') || unitType.includes('solar') || unitType.includes('kit')) {
+                    tipo = "Kit Solar / Antena Solar";
+                } else if (unitType.includes('ae') || unitType.includes('enchufable')) {
+                    tipo = "Antena Enchufable";
+                }
+                return { found: true, qty: qty > 0 ? qty : 1, tipo: tipo };
             }
-            return qty;
+
+            // 2. Coincidencia con palabras clave aisladas por palabra completa (sin falsos positivos)
+            const matchKw = textNorm.match(/\b(1as|2as|3as|1ae|2ae|3ae|gw|gateway|gateways|panel\s+solar|antena\s+solar|antena\s+enchufable|kit\s+solar|milesight|rak)\b/i);
+            if (matchKw) {
+                const kw = matchKw[1].toLowerCase();
+                let tipo = "Gateway / Antena";
+                if (kw.includes('as') || kw.includes('panel') || kw.includes('solar') || kw.includes('kit')) {
+                    tipo = "Kit Solar / Antena Solar";
+                } else if (kw.includes('ae')) {
+                    tipo = "Antena Enchufable";
+                }
+                return { found: true, qty: 1, tipo: tipo };
+            }
+
+            return { found: false, qty: 0, tipo: '' };
         }
 
-        // DETECCIÓN DE MODELOS
+        // DETECCIÓN DE MODELOS DE DISPOSITIVOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -588,7 +628,7 @@
                    p.includes('correa') || p.includes('contrapeso');
         }
 
-        // EXTRAE LOS MODELOS SIN DUPLICAR EL TIQUET EN LA TABLA
+        // DESGLOSE INTERNO DE MODELOS (Mantiene 1 sola fila en la tabla)
         function parseTaskModels(taskName) {
             if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
             
@@ -687,7 +727,7 @@
                 const esSoloRecibir = checkSoloRecibir(task);
                 const modelosDesglose = parseTaskModels(task.name);
                 const cliente = parseClienteName(task.name);
-                const kitsSolaresGW = parseKitsSolaresGW(task.name, task.description);
+                const kitData = parseKitsSolaresGW(task.name, task.description);
 
                 let totalUnitsContables = 0;
                 let totalUnitsBrutas = 0;
@@ -726,7 +766,8 @@
                     cliente: cliente,
                     unidades: totalUnitsContables,
                     unidadesBrutas: totalUnitsBrutas,
-                    kitsSolaresGW: kitsSolaresGW,
+                    kitsSolaresGW: kitData.found ? kitData.qty : 0,
+                    kitTipo: kitData.tipo,
                     esSoloRecibir: esSoloRecibir,
                     esAccesorio: esAccesorio,
                     modeloInfo: primaryModel,
@@ -975,12 +1016,12 @@
                     }
                 }
 
-                // Kits Solares & GWs a preparar
-                if (!completed && t.kitsSolaresGW > 0) {
+                // CORREGIDO: Kits Solares & GWs A PREPARAR (Solo tiquets pendientes dentro de los 7 días L-V)
+                if (!completed && !t.esSoloRecibir && t.dateInfo.isWithinWindow && t.kitsSolaresGW > 0) {
                     totalKitsGWs += t.kitsSolaresGW;
                 }
 
-                // Trabajo de Dispositivos Principales (Modelos)
+                // Trabajo de Dispositivos Principales
                 if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
@@ -1144,9 +1185,83 @@
         const modal = document.getElementById('detail-modal');
         const modalContent = document.getElementById('modal-content-box');
 
+        function filterModalByClient(clientName) {
+            window.activeClientFilter = clientName;
+            
+            document.querySelectorAll('.client-chip').forEach(btn => {
+                if (clientName && btn.dataset.client === clientName) {
+                    btn.classList.add('active');
+                } else if (!clientName && btn.id === 'btn-client-all') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            renderModalTable();
+        }
+
+        function renderModalTable() {
+            const tbody = document.getElementById('modal-table-body');
+            let tasksToRender = window.currentModalTasks || [];
+
+            if (window.activeClientFilter) {
+                tasksToRender = tasksToRender.filter(t => t.cliente === window.activeClientFilter);
+            }
+
+            let tUnidades = 0;
+            tbody.innerHTML = '';
+            
+            if (tasksToRender.length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm font-mono">No hay datos para este filtro de cliente.</td></tr>`;
+            }
+            
+            tasksToRender.forEach(t => {
+                const isKitModal = window.isCurrentKitSolarModal;
+                const unitsShow = isKitModal ? (t.kitsSolaresGW > 0 ? t.kitsSolaresGW : 1) : (t.unidades > 0 ? t.unidades : t.unidadesBrutas);
+                tUnidades += unitsShow;
+
+                const f = new Date(t.timestamp);
+                const fechaText = t.timestamp === 9999999999999 ? '-' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
+                
+                let etiquetasHtml = '';
+                if (t.etiquetas.length > 0) {
+                    etiquetasHtml = t.etiquetas.map(getTagHtml).join('');
+                }
+
+                const displayModelName = isKitModal ? (t.kitTipo || 'Kit Solar / Gateway') : t.modeloInfo.nombre;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir || t.esAccesorio ? 'opacity-60' : ''}">
+                        <td class="py-3 pr-4">
+                            <div class="font-semibold text-slate-200 text-xs">${t.nombre}</div>
+                            <div class="text-[10px] text-blue-400 font-mono mt-0.5"><i class="fa-solid fa-user mr-1"></i>${t.cliente}</div>
+                            <div class="flex flex-wrap gap-1 mt-1">${etiquetasHtml}</div>
+                        </td>
+                        <td class="py-3 px-4 align-top pt-4">
+                            <span class="flex items-center gap-2 text-[11px] text-slate-300 font-medium">
+                                <span class="w-2 h-2 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${displayModelName}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 align-top pt-4 text-center font-bold font-mono text-sm ${t.esSoloRecibir || t.esAccesorio ? 'text-slate-500' : 'text-white'}">
+                            ${unitsShow}
+                        </td>
+                        <td class="py-3 pl-4 align-top pt-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
+                    </tr>
+                `;
+            });
+            
+            document.getElementById('modal-total-tickets').innerText = `${tasksToRender.length} ROWS`;
+            document.getElementById('modal-total-units').innerText = tUnidades;
+        }
+
         function openModal(title, tasks, showRecommendations = false, isKitSolarModal = false) {
             document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-filter text-brand-blue"></i> Filtro Activo: ${title}`;
             
+            window.currentModalTasks = tasks;
+            window.activeClientFilter = null;
+            window.isCurrentKitSolarModal = isKitSolarModal;
+
             const clientBox = document.getElementById('modal-kits-client-box');
             const clientList = document.getElementById('modal-kits-client-list');
 
@@ -1161,11 +1276,11 @@
                 const clients = Object.keys(clientMap);
                 if (clients.length > 0) {
                     clientList.innerHTML = clients.map(c => `
-                        <div class="bg-blue-900/60 border border-blue-500/30 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2">
+                        <button onclick="filterModalByClient('${c}')" data-client="${c}" class="client-chip bg-blue-900/60 border border-blue-500/30 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 text-slate-200">
                             <i class="fa-solid fa-user text-blue-400"></i>
-                            <span class="font-medium text-slate-200">${c}:</span>
+                            <span class="font-medium">${c}:</span>
                             <strong class="text-white font-mono">${clientMap[c]} ${clientMap[c] === 1 ? 'kit/GW' : 'kits/GWs'}</strong>
-                        </div>
+                        </button>
                     `).join('');
                     clientBox.classList.remove('hidden');
                 } else {
@@ -1220,42 +1335,7 @@
                 recBox.classList.add('hidden');
             }
 
-            const tbody = document.getElementById('modal-table-body');
-            let tUnidades = 0;
-            tbody.innerHTML = '';
-            
-            if (tasks.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm font-mono">No hay datos en este filtro.</td></tr>`;
-            }
-            
-            tasks.forEach(t => {
-                const unitsShow = isKitSolarModal ? (t.kitsSolaresGW > 0 ? t.kitsSolaresGW : 1) : (t.unidades > 0 ? t.unidades : t.unidadesBrutas);
-                tUnidades += unitsShow;
-                const f = new Date(t.timestamp);
-                const fechaText = t.timestamp === 9999999999999 ? '-' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
-                
-                let etiquetasHtml = '';
-                if (t.etiquetas.length > 0) {
-                    etiquetasHtml = t.etiquetas.map(getTagHtml).join('');
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/40 border-b border-slate-800/50 ${t.esSoloRecibir || t.esAccesorio ? 'opacity-60' : ''}">
-                        <td class="py-3 pr-4">
-                            <div class="font-semibold text-slate-200 text-xs">${t.nombre}</div>
-                            <div class="flex flex-wrap gap-1 mt-1">${etiquetasHtml}</div>
-                        </td>
-                        <td class="py-3 px-4 align-top pt-4"><span class="flex items-center gap-2 text-[11px] text-slate-400 font-medium"><span class="w-2 h-2 rounded-full" style="background-color: ${t.modeloInfo.hex}"></span>${t.modeloInfo.nombre}</span></td>
-                        <td class="py-3 px-4 align-top pt-4 text-center font-bold font-mono text-sm ${t.esSoloRecibir || t.esAccesorio ? 'text-slate-500' : 'text-white'}">
-                            ${unitsShow}
-                        </td>
-                        <td class="py-3 pl-4 align-top pt-4 text-right font-mono text-[10px] text-slate-500">${fechaText}</td>
-                    </tr>
-                `;
-            });
-            
-            document.getElementById('modal-total-tickets').innerText = `${tasks.length} ROWS`;
-            document.getElementById('modal-total-units').innerText = tUnidades;
+            renderModalTable();
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
