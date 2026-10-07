@@ -142,7 +142,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.5 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.6 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -150,11 +150,11 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR 1: CAPACIDAD OBJETIVO ENVÍOS (600 UDS) -->
+            <!-- MONITOR 1: CAPACIDAD SEMANAL (600 UDS) -->
             <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
                 <div class="flex items-center gap-2 text-emerald-400 font-semibold">
                     <i class="fa-solid fa-truck-ramp-box text-sm animate-pulse"></i>
-                    <span>Envíos Semanales:</span>
+                    <span>Capacidad Semanal:</span>
                     <strong id="header-output-week" class="text-white text-base font-mono font-bold">0</strong>
                     <span class="text-slate-500">/ 600 uds</span>
                 </div>
@@ -164,11 +164,11 @@
                 <span id="header-output-var" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0%</span>
             </div>
 
-            <!-- MONITOR 2: CAPACIDAD POR FAMILIAS DE HARDWARE (Ixotrack: 50 | Pro: 300 | Cowpro v2: 1000) -->
+            <!-- MONITOR 2: SOPORTE EXTRA (CONTROL DE CAPACIDAD POR CUALQUIERA DE LAS 3 FAMILIAS) -->
             <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
                 <div class="flex items-center gap-2 text-cyan-400 font-semibold">
                     <i class="fa-solid fa-headset text-sm"></i>
-                    <span>Capacidad Familias:</span>
+                    <span>Soporte Extra:</span>
                     <strong id="header-soporte-units" class="text-white text-xs font-mono font-bold">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
                 </div>
                 <div class="w-16 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
@@ -568,7 +568,7 @@
             return "Cliente General";
         }
 
-        // PARSER ESPECÍFICO PARA KITS SOLARES, ANTENAS Y GATEWAYS
+        // PARSER ESPECÍFICO Y PRECISO PARA KITS SOLARES, ANTENAS Y GATEWAYS
         function parseKitsSolaresGW(taskName, description) {
             const text = ((taskName || '') + ' ' + (description || '')).trim();
             if (!text) return { found: false, qty: 0, tipo: '' };
@@ -603,7 +603,7 @@
             return { found: false, qty: 0, tipo: '' };
         }
 
-        // DETECCIÓN DE MODELOS
+        // DETECCIÓN DE MODELOS DE DISPOSITIVOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -1079,7 +1079,7 @@
                 }
             });
 
-            // 1. MONITOR ENVÍOS SEMANALES
+            // 1. MONITOR CAPACIDAD SEMANAL
             document.getElementById('header-output-week').innerText = outputW0;
             const pctCapacidad = Math.min(Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100), 100);
             const progressBar = document.getElementById('header-progress-bar');
@@ -1098,7 +1098,7 @@
                 if (progressBar) progressBar.className = "bg-red-500 h-full transition-all duration-500";
             }
 
-            // 2. MONITOR CAPACIDAD POR FAMILIAS DE HARDWARE
+            // 2. MONITOR SOPORTE EXTRA (LÍMITE INDIVIDUAL POR CUALQUIERA DE LAS 3 FAMILIAS)
             const unitsIxo = statsModelos['Ixotrack'] || 0;
             const unitsPro = (statsModelos['Ixotrack pro'] || 0) + (statsModelos['IxotrackproM10'] || 0) + (statsModelos['IxotrackproM10LR'] || 0);
             const unitsCowpro = statsModelos['Cowpro v2'] || 0;
@@ -1115,6 +1115,8 @@
             if (soporteBar) soporteBar.style.width = `${Math.min(maxPctFamily, 100)}%`;
 
             const soporteStatus = document.getElementById('header-soporte-status');
+            
+            // REGLA CLAVE: SI CUALQUIERA DE LAS 3 FAMILIAS SUPERA SU LÍMITE -> CUPO LLENO
             if (unitsIxo >= CAPACIDAD_IXOTRACK || unitsPro >= CAPACIDAD_PRO_SERIES || unitsCowpro >= CAPACIDAD_COWPRO) {
                 let saturated = [];
                 if (unitsIxo >= CAPACIDAD_IXOTRACK) saturated.push('Ixotrack');
