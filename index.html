@@ -74,6 +74,11 @@
             box-shadow: -4px 0 20px -2px rgba(59, 130, 246, 0.3) !important;
         }
 
+        .glow-purple {
+            border-left: 4px solid #8b5cf6 !important;
+            box-shadow: -4px 0 20px -2px rgba(139, 92, 246, 0.3) !important;
+        }
+
         .table-row-hover {
             transition: background-color 0.15s ease;
         }
@@ -133,7 +138,7 @@
         </div>
     </div>
 
-    <!-- HEADER BI CON DOS MONITORES DE CONTROL -->
+    <!-- HEADER BI -->
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
         <div>
             <div class="flex items-center gap-3">
@@ -142,9 +147,8 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.7 LEAN</span>
+                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.8 LEAN</span>
                     </h1>
-                    <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
             </div>
         </div>
@@ -198,8 +202,8 @@
 
     <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES (6 COLUMNAS) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <!-- KPIs PRINCIPALES (7 COLUMNAS) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4">
             <!-- Próximos 7 Días Lab. -->
             <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !t.esAccesorio && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -253,10 +257,10 @@
                 </div>
             </div>
 
-            <!-- Gateways Reemplazados -->
-            <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group glow-orange">
+            <!-- Incidencias GW (Reemplazados) -->
+            <div onclick="openModal('Incidencias GW', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group glow-orange">
                 <p class="text-orange-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span>GW Reemplazados</span>
+                    <span>Incidencias GW</span>
                     <i class="fa-solid fa-router text-orange-400"></i>
                 </p>
                 <div class="flex justify-between items-baseline">
@@ -274,6 +278,18 @@
                 <div class="flex justify-between items-baseline">
                     <h2 id="kpi-accesorios" class="text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">0</h2>
                     <span class="text-xs text-cyan-500/80 font-medium">reemplazos</span>
+                </div>
+            </div>
+
+            <!-- NUEVO KPI: Pendientes por Recibir (Bloqueados) -->
+            <div onclick="openModal('Pendientes por Recibir (Bloqueados)', window.allTasks.filter(t => t.esSoloRecibir && t.estado.includes('BLOQUEAD')))" class="bi-kpi-card rounded-2xl p-5 relative group glow-purple">
+                <p class="text-purple-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Pendiente Recibir</span>
+                    <i class="fa-solid fa-box-open text-purple-400"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-pendientes-recibir" class="text-3xl font-extrabold text-purple-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-purple-500/80 font-medium">dispositivos</span>
                 </div>
             </div>
         </div>
@@ -303,7 +319,7 @@
 
             <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Envíos Semanales</span>
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Capacidad Semanal</span>
                     <span class="text-[10px] text-slate-500 font-normal font-mono">Clic para explorar</span>
                 </h3>
                 <div class="w-full h-44 relative"><canvas id="chartRendimiento"></canvas></div>
@@ -1017,6 +1033,7 @@
             let totalGWListos = 0;
             let totalAccesorios = 0;
             let totalKitsGWs = 0;
+            let totalPendientesRecibir = 0;
             let enCursoCount = 0;
             
             let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Cowpro v2': 0, 'Gateway': 0, 'Otro': 0 };
@@ -1055,6 +1072,11 @@
                     totalKitsGWs += t.kitsSolaresGW;
                 }
 
+                // NUEVO KPI: Pendientes por recibir (SÓLO RECIBIR + BLOQUEADOS)
+                if (t.esSoloRecibir && t.estado.includes('BLOQUEAD')) {
+                    totalPendientesRecibir += t.unidadesBrutas;
+                }
+
                 // Trabajo de Dispositivos Principales
                 if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
@@ -1078,6 +1100,7 @@
                     totalAccesorios += t.unidadesBrutas;
                 }
 
+                // Incidencias GW (Reemplazados listos)
                 if (t.modeloInfo.nombre === 'Gateway' && completed) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
@@ -1116,7 +1139,7 @@
                 if (progressBar) progressBar.className = "bg-red-500 h-full transition-all duration-500";
             }
 
-            // 2. MONITOR SOPORTE EXTRA (LÍMITE INDIVIDUAL POR CUALQUIERA DE LAS 3 FAMILIAS)
+            // 2. MONITOR SOPORTE EXTRA (LÍMITE INDIVIDUAL)
             const unitsIxo = statsModelos['Ixotrack'] || 0;
             const unitsPro = (statsModelos['Ixotrack pro'] || 0) + (statsModelos['IxotrackproM10'] || 0) + (statsModelos['IxotrackproM10LR'] || 0);
             const unitsCowpro = statsModelos['Cowpro v2'] || 0;
@@ -1134,7 +1157,6 @@
 
             const soporteStatus = document.getElementById('header-soporte-status');
             
-            // REGLA CLAVE: SI CUALQUIERA DE LAS 3 FAMILIAS SUPERA SU LÍMITE -> CUPO LLENO
             if (unitsIxo >= CAPACIDAD_IXOTRACK || unitsPro >= CAPACIDAD_PRO_SERIES || unitsCowpro >= CAPACIDAD_COWPRO) {
                 let saturated = [];
                 if (unitsIxo >= CAPACIDAD_IXOTRACK) saturated.push('Ixotrack');
@@ -1160,6 +1182,7 @@
             document.getElementById('kpi-gw').innerText = totalGWListos;
             document.getElementById('kpi-accesorios').innerText = totalAccesorios;
             document.getElementById('kpi-kits').innerText = totalKitsGWs;
+            document.getElementById('kpi-pendientes-recibir').innerText = totalPendientesRecibir;
 
             document.getElementById('mod-ixo').innerText = statsModelos['Ixotrack'];
             document.getElementById('mod-pro').innerText = statsModelos['Ixotrack pro'];
@@ -1285,7 +1308,7 @@
             tbody.innerHTML = '';
             
             if (tasksToRender.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm font-mono">No hay datos para este filtro de cliente.</td></tr>`;
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-slate-500 text-sm font-mono">No hay datos para este filtro.</td></tr>`;
             }
             
             tasksToRender.forEach(t => {
