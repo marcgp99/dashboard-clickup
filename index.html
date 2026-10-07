@@ -69,6 +69,11 @@
             box-shadow: -4px 0 20px -2px rgba(6, 182, 212, 0.3) !important;
         }
 
+        .glow-blue {
+            border-left: 4px solid #3b82f6 !important;
+            box-shadow: -4px 0 20px -2px rgba(59, 130, 246, 0.3) !important;
+        }
+
         .table-row-hover {
             transition: background-color 0.15s ease;
         }
@@ -126,7 +131,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.1 LEAN</span>
+                        Panel de Producción <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.2 LEAN</span>
                     </h1>
                     <p class="text-slate-400 text-xs mt-0.5">Inteligencia de Planta & Sincronización ClickUp en Tiempo Real</p>
                 </div>
@@ -169,8 +174,8 @@
 
     <main class="space-y-6 max-w-[1700px] mx-auto">
         
-        <!-- KPIs PRINCIPALES (5 COLUMNAS) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <!-- KPIs PRINCIPALES (6 COLUMNAS) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-4">
             <!-- Próximos 7 Días Lab. -->
             <div onclick="openModal('A Fabricar (Próx. 7 Días Lab.)', window.allTasks.filter(t => t.dateInfo.isWithinWindow && !t.esSoloRecibir && !t.esAccesorio && !isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -212,6 +217,18 @@
                 </div>
             </div>
 
+            <!-- NUEVO KPI: Kits Solares & Gateways a Preparar -->
+            <div onclick="openModal('Kits Solares y Gateways a Preparar', window.allTasks.filter(t => t.kitsSolaresGW > 0 && !isTaskCompleted(t)), false, true)" class="bi-kpi-card rounded-2xl p-5 relative group glow-blue">
+                <p class="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span>Kits Solares & GWs</span>
+                    <i class="fa-solid fa-solar-panel text-blue-400"></i>
+                </p>
+                <div class="flex justify-between items-baseline">
+                    <h2 id="kpi-kits" class="text-3xl font-extrabold text-blue-400 font-mono tracking-tight">0</h2>
+                    <span class="text-xs text-blue-500/80 font-medium">a preparar</span>
+                </div>
+            </div>
+
             <!-- Gateways Reemplazados -->
             <div onclick="openModal('GW Reemplazados', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group glow-orange">
                 <p class="text-orange-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -224,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- KPI EXCLUSIVO: Reemplazos de Correas y Contrapesos -->
+            <!-- KPI EXCLUSIVO: Correas y Contrapesos -->
             <div onclick="openModal('Reemplazos de Correas y Contrapesos', window.allTasks.filter(t => t.esAccesorio))" class="bi-kpi-card rounded-2xl p-5 relative group glow-cyan">
                 <p class="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Correas / Contrapesos</span>
@@ -367,6 +384,14 @@
                 </button>
             </div>
 
+            <!-- CAJA ESPECIAL: DESGLOSE DE KITS SOLARES Y GATEWAYS POR CLIENTE -->
+            <div id="modal-kits-client-box" class="hidden bg-blue-950/40 border-b border-blue-500/20 p-4 px-5">
+                <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2 text-xs uppercase tracking-wide">
+                    <i class="fa-solid fa-users"></i> Equipos / Kits Solares / GWs a enviar por Cliente
+                </h4>
+                <div id="modal-kits-client-list" class="flex flex-wrap gap-2"></div>
+            </div>
+
             <!-- RESUMEN DE MODELOS EN MODAL -->
             <div id="modal-summary-models-box" class="bg-slate-950/60 border-b border-slate-800/80 p-4 px-5">
                 <div id="modal-summary-models-list" class="flex flex-wrap gap-2.5"></div>
@@ -452,7 +477,7 @@
             return false;
         }
 
-        // COLORES DE ETIQUETAS (REEMPLAZO -> AMARILLO #f59e0b)
+        // COLORES DE ETIQUETAS
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) return '#f59e0b';
@@ -474,7 +499,7 @@
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
-        // PRIORIDAD ÚNICA Y ESTRICTA DESDE CLICKUP (Sin mezclar con etiquetas)
+        // PRIORIDAD EXCLUSIVA DESDE CLICKUP
         function getPriorityHtml(task) {
             if (task.prioridadNum === 1 || task.prioridadLevel === 'urgent') {
                 return '<span class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-fire"></i>Urgente</span>';
@@ -488,7 +513,41 @@
             return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
-        // DETECCIÓN DE MODELOS (INCLUYE COWPRO V2 ROJO)
+        // EXTRACCIÓN DE NOMBRE DE CLIENTE
+        function parseClienteName(taskName) {
+            if (!taskName) return "Cliente General";
+            const n = taskName.strip ? taskName.strip() : taskName.trim();
+            if (n.includes('-')) {
+                const parts = n.split('-');
+                if (parts.length > 1) {
+                    let candidate = parts[1].trim();
+                    candidate = candidate.replace(/(devuelve|urgente|solo|solo recuperar|reemplazo).*/i, '').trim();
+                    if (candidate.length > 0) return candidate;
+                }
+            }
+            if (n.toUpperCase().startsWith('VENTA')) {
+                const match = n.match(/VENTA\s+(.*?)(?:\s+\d+[a-zA-Z]*|\s+x\d+|$)/i);
+                if (match && match[1].trim().length > 0) return match[1].trim();
+            }
+            return "Cliente General";
+        }
+
+        // CONTEO ESPECÍFICO DE KITS SOLARES, ANTENAS Y GATEWAYS DE SALIDA
+        function parseKitsSolaresGW(taskName, description) {
+            const text = ((taskName || '') + ' ' + (description || '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            let qty = 0;
+            const matchGwNum = text.match(/(\d+)\s*(as|ae|antena\s*solar|antena\s*enchufable|panel\s*solar|gw|gateway|gateways|antenas)/i) ||
+                               text.match(/(gw|gateway|gateways|antena|antenas)\s*x?(\d+)/i);
+            if (matchGwNum) {
+                qty = parseInt(matchGwNum[1] || matchGwNum[2], 10);
+            } else if (text.includes('1as') || text.includes('as') || text.includes('1ae') || text.includes('ae') || text.includes('panel solar') || text.includes('gateway') || text.includes('gw')) {
+                qty = 1;
+            }
+            return qty;
+        }
+
+        // DETECCIÓN DE MODELOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -529,8 +588,8 @@
                    p.includes('correa') || p.includes('contrapeso');
         }
 
-        // DESGLOSE INTELIGENTE DE TIQUETS COMPUESTOS (DOBLE MODELO O "+" EN TÍTULO)
-        function parseTaskSegments(taskName) {
+        // EXTRAE LOS MODELOS SIN DUPLICAR EL TIQUET EN LA TABLA
+        function parseTaskModels(taskName) {
             if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
             
             const parts = taskName.split('+');
@@ -562,8 +621,6 @@
                 const mod = parseModelo(taskName);
                 let qty = 1;
                 const nLower = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                
-                // Un tiquet es accesorio SOLO SI es específicamente de correas/contrapesos y no es una venta general de collares
                 const isAccesorio = (nLower.includes('correa') || nLower.includes('contrapeso')) && !nLower.includes('venta') && !nLower.includes('ixotrack') && !nLower.includes('m10');
 
                 if (mod.nombre === 'Gateway') {
@@ -626,10 +683,26 @@
         }
 
         function normalizeTasks(rawTasks) {
-            let normalized = [];
-            rawTasks.forEach(task => {
+            return rawTasks.map(task => {
                 const esSoloRecibir = checkSoloRecibir(task);
-                const segments = parseTaskSegments(task.name);
+                const modelosDesglose = parseTaskModels(task.name);
+                const cliente = parseClienteName(task.name);
+                const kitsSolaresGW = parseKitsSolaresGW(task.name, task.description);
+
+                let totalUnitsContables = 0;
+                let totalUnitsBrutas = 0;
+                let esAccesorio = modelosDesglose.every(m => m.esAccesorio);
+
+                modelosDesglose.forEach(m => {
+                    totalUnitsBrutas += m.unidades;
+                    if (!esSoloRecibir && !m.esAccesorio) {
+                        totalUnitsContables += m.unidades;
+                    }
+                });
+
+                const primaryModel = modelosDesglose[0] ? modelosDesglose[0].modeloInfo : parseModelo(task.name);
+                const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
+                const dateInfo = parseFechas(task.due_date);
 
                 let priorityNum = 3; 
                 let priorityLevel = 'normal';
@@ -641,39 +714,33 @@
                     else if (p === 'low' || p === '4') { priorityNum = 4; priorityLevel = 'low'; }
                 }
 
-                segments.forEach((seg, idx) => {
-                    const unidadesBrutas = seg.unidades;
-                    const unidadesContables = (esSoloRecibir || seg.esAccesorio) ? 0 : unidadesBrutas;
-                    const estado = task.status ? task.status.status.toUpperCase() : 'DESCONOCIDO';
-                    const dateInfo = parseFechas(task.due_date);
-                    
-                    const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
-                        ? task.tags.map(t => t.name.toUpperCase()) 
-                        : [];
+                const arrayEtiquetas = (task.tags && Array.isArray(task.tags)) 
+                    ? task.tags.map(t => t.name.toUpperCase()) 
+                    : [];
 
-                    const closedTimestamp = task.date_closed ? parseInt(task.date_closed, 10) : (task.date_updated ? parseInt(task.date_updated, 10) : 0);
+                const closedTimestamp = task.date_closed ? parseInt(task.date_closed, 10) : (task.date_updated ? parseInt(task.date_updated, 10) : 0);
 
-                    normalized.push({
-                        id: task.id + (segments.length > 1 ? `_${idx}` : ''),
-                        nombre: segments.length > 1 ? `${task.name} [${seg.modeloInfo.nombre}: ${seg.unidades}uds]` : task.name,
-                        nombreOriginal: task.name,
-                        unidades: unidadesContables,
-                        unidadesBrutas: unidadesBrutas,
-                        esSoloRecibir: esSoloRecibir,
-                        esAccesorio: seg.esAccesorio,
-                        modeloInfo: seg.modeloInfo,
-                        estado: estado,
-                        estadoColor: task.status ? task.status.color : '#64748b',
-                        dateInfo: dateInfo,
-                        etiquetas: arrayEtiquetas,
-                        timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
-                        closedTimestamp: closedTimestamp,
-                        prioridadNum: priorityNum,
-                        prioridadLevel: priorityLevel
-                    });
-                });
+                return {
+                    id: task.id,
+                    nombre: task.name,
+                    cliente: cliente,
+                    unidades: totalUnitsContables,
+                    unidadesBrutas: totalUnitsBrutas,
+                    kitsSolaresGW: kitsSolaresGW,
+                    esSoloRecibir: esSoloRecibir,
+                    esAccesorio: esAccesorio,
+                    modeloInfo: primaryModel,
+                    modelosDesglose: modelosDesglose,
+                    estado: estado,
+                    estadoColor: task.status ? task.status.color : '#64748b',
+                    dateInfo: dateInfo,
+                    etiquetas: arrayEtiquetas,
+                    timestamp: task.due_date ? parseInt(task.due_date, 10) : 9999999999999,
+                    closedTimestamp: closedTimestamp,
+                    prioridadNum: priorityNum,
+                    prioridadLevel: priorityLevel
+                };
             });
-            return normalized;
         }
 
         async function fetchClickUpData() {
@@ -726,21 +793,23 @@
                 if (task.esSoloRecibir || task.esAccesorio) return; 
                 if (isTaskCompleted(task)) return;
                 if (!task.dateInfo.isWithinWindow) return; 
-                
-                const model = task.modeloInfo.nombre;
-                const modelHex = task.modeloInfo.hex;
-                if (model === 'Otro' || model === 'Gateway' || model === 'Correas / Contrapesos') return;
-                
-                if (!modelsData[model]) {
-                    modelsData[model] = { todayUnits: 0, futureUnits: 0, futureTickets: [], hex: modelHex };
-                }
 
-                if (task.dateInfo.isTodayOrOverdue) {
-                    modelsData[model].todayUnits += task.unidades;
-                } else if (task.dateInfo.isFutureRolling) {
-                    modelsData[model].futureUnits += task.unidades;
-                    modelsData[model].futureTickets.push(`${task.nombre} (${task.unidades} uds)`);
-                }
+                task.modelosDesglose.forEach(m => {
+                    const model = m.modeloInfo.nombre;
+                    const modelHex = m.modeloInfo.hex;
+                    if (model === 'Otro' || model === 'Gateway' || model === 'Correas / Contrapesos') return;
+
+                    if (!modelsData[model]) {
+                        modelsData[model] = { todayUnits: 0, futureUnits: 0, futureTickets: [], hex: modelHex };
+                    }
+
+                    if (task.dateInfo.isTodayOrOverdue) {
+                        modelsData[model].todayUnits += m.unidades;
+                    } else if (task.dateInfo.isFutureRolling) {
+                        modelsData[model].futureUnits += m.unidades;
+                        modelsData[model].futureTickets.push(`${task.nombre} (${m.unidades} uds)`);
+                    }
+                });
             });
 
             let suggestions = [];
@@ -872,6 +941,7 @@
             let totalHoy = 0;
             let totalGWListos = 0;
             let totalAccesorios = 0;
+            let totalKitsGWs = 0;
             let enCursoCount = 0;
             
             let statsModelos = { 'Ixotrack': 0, 'Ixotrack pro': 0, 'IxotrackproM10': 0, 'IxotrackproM10LR': 0, 'Cowpro v2': 0, 'Gateway': 0, 'Otro': 0 };
@@ -905,22 +975,30 @@
                     }
                 }
 
-                // Trabajo de Dispositivos Principales
+                // Kits Solares & GWs a preparar
+                if (!completed && t.kitsSolaresGW > 0) {
+                    totalKitsGWs += t.kitsSolaresGW;
+                }
+
+                // Trabajo de Dispositivos Principales (Modelos)
                 if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
-                    
-                    if (t.dateInfo.isWithinWindow) {
-                        if (statsModelos[t.modeloInfo.nombre] !== undefined) {
-                            statsModelos[t.modeloInfo.nombre] += t.unidades;
+
+                    t.modelosDesglose.forEach(m => {
+                        if (t.dateInfo.isWithinWindow) {
+                            if (statsModelos[m.modeloInfo.nombre] !== undefined) {
+                                statsModelos[m.modeloInfo.nombre] += m.unidades;
+                            }
                         }
-                    }
+                    });
+
                     if (statsTiempos[t.dateInfo.category] !== undefined) {
                         statsTiempos[t.dateInfo.category] += t.unidades;
                     }
                 }
 
-                // Conteo Exclusivo para Tiquets Específicos de Correas y Contrapesos
+                // Conteo Exclusivo de Reemplazos de Correas / Contrapesos
                 if (t.esAccesorio) {
                     totalAccesorios += t.unidadesBrutas;
                 }
@@ -968,6 +1046,7 @@
             document.getElementById('kpi-encurso').innerText = enCursoCount;
             document.getElementById('kpi-gw').innerText = totalGWListos;
             document.getElementById('kpi-accesorios').innerText = totalAccesorios;
+            document.getElementById('kpi-kits').innerText = totalKitsGWs;
 
             document.getElementById('mod-ixo').innerText = statsModelos['Ixotrack'];
             document.getElementById('mod-pro').innerText = statsModelos['Ixotrack pro'];
@@ -992,7 +1071,7 @@
             let visibleTasks = window.allTasks.filter(t => !isTaskCompleted(t));
             
             if (currentTableFilter === 'URGENT') {
-                visibleTasks = visibleTasks.filter(t => t.prioridadNum === 1);
+                visibleTasks = visibleTasks.filter(t => t.prioridadNum === 1 || t.prioridadLevel === 'urgent');
             } else if (currentTableFilter === 'ENVIO') {
                 visibleTasks = visibleTasks.filter(t => t.etiquetas.some(tag => tag.includes('ENVIO')));
             } else if (currentTableFilter === 'REEMPLAZO') {
@@ -1065,27 +1144,57 @@
         const modal = document.getElementById('detail-modal');
         const modalContent = document.getElementById('modal-content-box');
 
-        function openModal(title, tasks, showRecommendations = false) {
+        function openModal(title, tasks, showRecommendations = false, isKitSolarModal = false) {
             document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-filter text-brand-blue"></i> Filtro Activo: ${title}`;
             
+            const clientBox = document.getElementById('modal-kits-client-box');
+            const clientList = document.getElementById('modal-kits-client-list');
+
+            if (isKitSolarModal) {
+                let clientMap = {};
+                tasks.forEach(t => {
+                    const cName = t.cliente || 'Cliente General';
+                    const qty = t.kitsSolaresGW > 0 ? t.kitsSolaresGW : 1;
+                    clientMap[cName] = (clientMap[cName] || 0) + qty;
+                });
+
+                const clients = Object.keys(clientMap);
+                if (clients.length > 0) {
+                    clientList.innerHTML = clients.map(c => `
+                        <div class="bg-blue-900/60 border border-blue-500/30 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-user text-blue-400"></i>
+                            <span class="font-medium text-slate-200">${c}:</span>
+                            <strong class="text-white font-mono">${clientMap[c]} ${clientMap[c] === 1 ? 'kit/GW' : 'kits/GWs'}</strong>
+                        </div>
+                    `).join('');
+                    clientBox.classList.remove('hidden');
+                } else {
+                    clientBox.classList.add('hidden');
+                }
+            } else {
+                clientBox.classList.add('hidden');
+            }
+
             const summaryContainer = document.getElementById('modal-summary-models-box');
             const summaryList = document.getElementById('modal-summary-models-list');
             
             let modelBreakdown = {};
             tasks.forEach(t => {
-                const mName = t.modeloInfo.nombre;
-                const mHex = t.modeloInfo.hex;
-                if (!modelBreakdown[mName]) {
-                    modelBreakdown[mName] = { units: 0, count: 0, hex: mHex };
-                }
-                const displayUnits = t.unidades > 0 ? t.unidades : t.unidadesBrutas;
-                modelBreakdown[mName].units += displayUnits;
-                modelBreakdown[mName].count += 1;
+                t.modelosDesglose.forEach(m => {
+                    const mName = m.modeloInfo.nombre;
+                    const mHex = m.modeloInfo.hex;
+                    if (!modelBreakdown[mName]) {
+                        modelBreakdown[mName] = { units: 0, count: 0, hex: mHex };
+                    }
+                    const displayUnits = m.unidades > 0 ? m.unidades : 1;
+                    modelBreakdown[mName].units += displayUnits;
+                    modelBreakdown[mName].count += 1;
+                });
             });
 
             const activeModels = Object.keys(modelBreakdown);
 
-            if (activeModels.length > 0) {
+            if (activeModels.length > 0 && !isKitSolarModal) {
                 summaryList.innerHTML = activeModels.map(m => `
                     <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl shadow-sm">
                         <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${modelBreakdown[m].hex}"></span>
@@ -1120,7 +1229,7 @@
             }
             
             tasks.forEach(t => {
-                const unitsShow = t.unidades > 0 ? t.unidades : t.unidadesBrutas;
+                const unitsShow = isKitSolarModal ? (t.kitsSolaresGW > 0 ? t.kitsSolaresGW : 1) : (t.unidades > 0 ? t.unidades : t.unidadesBrutas);
                 tUnidades += unitsShow;
                 const f = new Date(t.timestamp);
                 const fechaText = t.timestamp === 9999999999999 ? '-' : f.toLocaleDateString('es-ES', { day:'2-digit', month:'short' });
@@ -1167,7 +1276,7 @@
             }, 300);
         }
 
-        // INICIALIZACIÓN CON VERIFICACIÓN DE PIN
+        // INICIALIZACIÓN
         checkPinAuth();
         setInterval(fetchClickUpData, 60000);
     </script>
