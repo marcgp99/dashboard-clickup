@@ -147,31 +147,31 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.9 LEAN</span>
+                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v4.0 LEAN</span>
                     </h1>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR 1: SOPORTE EXTRA ESTA SEMANA (L-V) -->
-            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
-                <div class="flex items-center gap-1.5 text-cyan-400 font-semibold">
+            <!-- MONITOR 1: SOPORTE ESTA SEMANA (VERDE ESMERALDA) -->
+            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl text-xs shadow-inner shadow-emerald-500/5">
+                <div class="flex items-center gap-1.5 text-emerald-400 font-semibold">
                     <i class="fa-solid fa-calendar-day text-xs"></i>
-                    <span class="whitespace-nowrap">Soporte (Esta Sem L-V):</span>
-                    <strong id="header-soporte-thisweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
+                    <span class="whitespace-nowrap">Soporte esta semana:</span>
+                    <strong id="header-soporte-thisweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000</strong>
                 </div>
                 <span id="header-soporte-thisweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">Disponible</span>
             </div>
 
-            <!-- MONITOR 2: SOPORTE EXTRA PRÓXIMA SEMANA (L-V) -->
-            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
-                <div class="flex items-center gap-1.5 text-blue-400 font-semibold">
+            <!-- MONITOR 2: SOPORTE PRÓXIMA SEMANA (AZUL ÍNDIGO DIFERENCIADO) -->
+            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-indigo-500/40 px-3.5 py-1.5 rounded-xl text-xs shadow-inner shadow-indigo-500/5">
+                <div class="flex items-center gap-1.5 text-indigo-400 font-semibold">
                     <i class="fa-solid fa-calendar-plus text-xs"></i>
-                    <span class="whitespace-nowrap">Soporte (Próx Sem L-V):</span>
-                    <strong id="header-soporte-nextweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
+                    <span class="whitespace-nowrap">Soporte próxima semana:</span>
+                    <strong id="header-soporte-nextweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000</strong>
                 </div>
-                <span id="header-soporte-nextweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">Disponible</span>
+                <span id="header-soporte-nextweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">Disponible</span>
             </div>
 
             <!-- RELOJ SINCRO -->
@@ -405,7 +405,7 @@
         </section>
     </main>
 
-    <!-- MODAL EMERGENTE -->
+    <!-- MODAL EMERGENTE CON FICHAS INTERACTIVAS DE CLIENTES -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeModal()"></div>
         
@@ -479,7 +479,7 @@
         const CAPACIDAD_OBJETIVO_SEMANAL = 600; 
         
         // REGLAS ESPECÍFICAS DE LÍMITES POR FAMILIAS DE HARDWARE
-        const CAPACIDAD_IXOTRACK = 50;
+        const CAPACIDAD_IXOTRACK = 150; // ACTUALIZADO A 150 UNIDADES
         const CAPACIDAD_PRO_SERIES = 300; // Ixotrack pro + IxotrackproM10 + IxotrackproM10LR
         const CAPACIDAD_COWPRO = 1000;
 
@@ -721,14 +721,10 @@
             const now = new Date();
             const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); 
             
-            // Lunes de la semana en curso (00:00:00)
             const thisMon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dayOfWeek - 1), 0, 0, 0, 0);
-            // Viernes de la semana en curso (23:59:59)
             const thisFri = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() + 4, 23, 59, 59, 999);
             
-            // Lunes de la próxima semana (00:00:00)
             const nextMon = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() + 7, 0, 0, 0, 0);
-            // Viernes de la próxima semana (23:59:59)
             const nextFri = new Date(nextMon.getFullYear(), nextMon.getMonth(), nextMon.getDate() + 4, 23, 59, 59, 999);
             
             return {
@@ -1037,7 +1033,7 @@
             });
         }
 
-        // EVALUADOR Y ACTUALIZADOR DE MONITORES DE SOPORTE EXTRA
+        // EVALUADOR DE MONITORES DE SOPORTE EXTRA
         function updateSoporteBadge(elementTextId, elementStatusId, data) {
             document.getElementById(elementTextId).innerText = `Ixo: ${data.ixo}/${CAPACIDAD_IXOTRACK} | Pro: ${data.pro}/${CAPACIDAD_PRO_SERIES} | Cow: ${data.cow}/${CAPACIDAD_COWPRO}`;
 
@@ -1107,17 +1103,14 @@
                     }
                 }
 
-                // Kits Solares & GWs A PREPARAR
                 if (!completed && !t.esSoloRecibir && t.dateInfo.isWithinWindow && t.kitsSolaresGW > 0) {
                     totalKitsGWs += t.kitsSolaresGW;
                 }
 
-                // NUEVO KPI: Pendientes por recibir (SÓLO RECIBIR + BLOQUEADOS)
                 if (t.esSoloRecibir && t.estado.includes('BLOQUEAD')) {
                     totalPendientesRecibir += t.unidadesBrutas;
                 }
 
-                // Trabajo de Dispositivos Principales y Segmentación de Semanas L-V para Soporte
                 if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
@@ -1136,7 +1129,6 @@
                             }
                         }
 
-                        // Acumulado exacto por familias para los dos monitores L-V
                         if (isThisW) {
                             if (name === 'Ixotrack') thisWeekFamilies.ixo += units;
                             else if (name === 'Ixotrack pro' || name === 'IxotrackproM10' || name === 'IxotrackproM10LR') thisWeekFamilies.pro += units;
@@ -1153,12 +1145,10 @@
                     }
                 }
 
-                // Conteo Exclusivo de Reemplazos de Correas / Contrapesos
                 if (t.esAccesorio) {
                     totalAccesorios += t.unidadesBrutas;
                 }
 
-                // Incidencias GW (Reemplazados listos)
                 if (t.modeloInfo.nombre === 'Gateway' && completed) {
                     totalGWListos += (t.esSoloRecibir ? t.unidadesBrutas : t.unidades);
                 }
@@ -1178,7 +1168,6 @@
                 }
             });
 
-            // ACTUALIZACIÓN DE LOS DOS MONITORES DE SOPORTE EXTRA (L-V)
             updateSoporteBadge('header-soporte-thisweek', 'header-soporte-thisweek-status', thisWeekFamilies);
             updateSoporteBadge('header-soporte-nextweek', 'header-soporte-nextweek-status', nextWeekFamilies);
 
