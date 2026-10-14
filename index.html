@@ -138,44 +138,57 @@
         </div>
     </div>
 
-    <!-- HEADER BI -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-800/80 gap-4">
-        <div>
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-brand-blue shadow-lg shadow-blue-500/10">
-                    <i class="fa-solid fa-chart-pie text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v4.0 LEAN</span>
-                    </h1>
-                </div>
+    <!-- HEADER BI CON MONITORES DE SOPORTE DESTACADOS (DOBLE DE TAMAÑO) -->
+    <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center pb-5 mb-6 border-b border-slate-800/80 gap-5">
+        <div class="flex items-center gap-3">
+            <div class="p-3 bg-blue-500/10 border border-blue-500/30 rounded-2xl text-brand-blue shadow-lg shadow-blue-500/10">
+                <i class="fa-solid fa-chart-pie text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                    PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v4.1 LEAN</span>
+                </h1>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR 1: SOPORTE ESTA SEMANA (VERDE ESMERALDA) -->
-            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl text-xs shadow-inner shadow-emerald-500/5">
-                <div class="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                    <i class="fa-solid fa-calendar-day text-xs"></i>
-                    <span class="whitespace-nowrap">Soporte esta semana:</span>
-                    <strong id="header-soporte-thisweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000</strong>
+        <!-- CONTENEDOR CENTRAL: MONITORES DE SOPORTE DESTACADOS Y AMPLIADOS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full xl:w-auto flex-1 max-w-4xl xl:mx-4">
+            
+            <!-- MONITOR 1: SOPORTE ESTA SEMANA (VERDE ESMERALDA VIBRANTE) -->
+            <div class="flex items-center justify-between gap-4 bg-gradient-to-r from-emerald-950/70 via-slate-900/95 to-slate-900/95 border-2 border-emerald-500/60 p-3.5 px-5 rounded-2xl shadow-xl shadow-emerald-950/30">
+                <div class="flex flex-col">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-emerald-400 text-sm"></i> Soporte esta semana
+                    </span>
+                    <strong id="header-soporte-thisweek" class="text-white text-sm sm:text-base font-mono font-extrabold tracking-tight mt-1">
+                        Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000
+                    </strong>
                 </div>
-                <span id="header-soporte-thisweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">Disponible</span>
+                <span id="header-soporte-thisweek-status" class="text-xs px-3 py-1 rounded-xl font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 whitespace-nowrap shadow-sm">
+                    Disponible
+                </span>
             </div>
 
-            <!-- MONITOR 2: SOPORTE PRÓXIMA SEMANA (AZUL ÍNDIGO DIFERENCIADO) -->
-            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-indigo-500/40 px-3.5 py-1.5 rounded-xl text-xs shadow-inner shadow-indigo-500/5">
-                <div class="flex items-center gap-1.5 text-indigo-400 font-semibold">
-                    <i class="fa-solid fa-calendar-plus text-xs"></i>
-                    <span class="whitespace-nowrap">Soporte próxima semana:</span>
-                    <strong id="header-soporte-nextweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000</strong>
+            <!-- MONITOR 2: SOPORTE PRÓXIMA SEMANA (VERDE OSCURO ELEGANTE) -->
+            <div class="flex items-center justify-between gap-4 bg-gradient-to-r from-[#031c13] via-slate-900/95 to-slate-900/95 border-2 border-emerald-800/80 p-3.5 px-5 rounded-2xl shadow-xl shadow-emerald-950/50">
+                <div class="flex flex-col">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-plus text-emerald-600 text-sm"></i> Soporte próxima semana
+                    </span>
+                    <strong id="header-soporte-nextweek" class="text-emerald-100/90 text-sm sm:text-base font-mono font-extrabold tracking-tight mt-1">
+                        Ixo: 0/150 | Pro: 0/300 | Cow: 0/1000
+                    </strong>
                 </div>
-                <span id="header-soporte-nextweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">Disponible</span>
+                <span id="header-soporte-nextweek-status" class="text-xs px-3 py-1 rounded-xl font-mono font-bold bg-emerald-950/80 text-emerald-500 border border-emerald-800/80 whitespace-nowrap shadow-sm">
+                    Disponible
+                </span>
             </div>
 
-            <!-- RELOJ SINCRO -->
-            <div class="flex items-center gap-2 bg-slate-900 px-3.5 py-2 rounded-xl border border-slate-800 text-xs text-slate-400 font-mono">
+        </div>
+
+        <!-- HERRAMIENTAS: RELOJ, ACTUALIZAR Y LOGOUT -->
+        <div class="flex items-center gap-3 self-end xl:self-auto">
+            <div class="flex items-center gap-2 bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800 text-xs text-slate-400 font-mono">
                 <span class="relative flex h-2 w-2">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -183,11 +196,11 @@
                 <span id="last-update">Calculando...</span>
             </div>
 
-            <button onclick="fetchClickUpData()" class="bg-brand-blue hover:bg-blue-600 active:scale-95 text-white px-4 py-2 rounded-xl text-xs font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
+            <button onclick="fetchClickUpData()" class="bg-brand-blue hover:bg-blue-600 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shadow-lg shadow-blue-500/20 flex items-center gap-2">
                 <i class="fa-solid fa-rotate"></i> Actualizar
             </button>
             
-            <button onclick="logoutPin()" title="Cerrar Sesión PIN" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white p-2 rounded-xl text-xs transition">
+            <button onclick="logoutPin()" title="Cerrar Sesión PIN" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white p-2.5 rounded-xl text-xs transition">
                 <i class="fa-solid fa-power-off"></i>
             </button>
         </div>
@@ -405,7 +418,7 @@
         </section>
     </main>
 
-    <!-- MODAL EMERGENTE CON FICHAS INTERACTIVAS DE CLIENTES -->
+    <!-- MODAL EMERGENTE -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeModal()"></div>
         
@@ -1033,8 +1046,8 @@
             });
         }
 
-        // EVALUADOR DE MONITORES DE SOPORTE EXTRA
-        function updateSoporteBadge(elementTextId, elementStatusId, data) {
+        // EVALUADOR DE MONITORES DE SOPORTE EXTRA CON DIFERENCIACIÓN VERDE ESMERALDA / VERDE OSCURO
+        function updateSoporteBadge(elementTextId, elementStatusId, data, isNextWeek = false) {
             document.getElementById(elementTextId).innerText = `Ixo: ${data.ixo}/${CAPACIDAD_IXOTRACK} | Pro: ${data.pro}/${CAPACIDAD_PRO_SERIES} | Cow: ${data.cow}/${CAPACIDAD_COWPRO}`;
 
             const statusEl = document.getElementById(elementStatusId);
@@ -1049,13 +1062,17 @@
                 if (data.cow >= CAPACIDAD_COWPRO) saturated.push('Cowpro v2');
 
                 statusEl.innerText = `Cupo Lleno (${saturated.join(', ')})`;
-                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse whitespace-nowrap`;
+                statusEl.className = `text-xs px-3 py-1 rounded-xl font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/40 animate-pulse whitespace-nowrap shadow-sm`;
             } else if (pctIxo >= 80 || pctPro >= 80 || pctCow >= 80) {
                 statusEl.innerText = "Cerca del Límite";
-                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap`;
+                statusEl.className = `text-xs px-3 py-1 rounded-xl font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap shadow-sm`;
             } else {
                 statusEl.innerText = "Disponible";
-                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap`;
+                if (isNextWeek) {
+                    statusEl.className = `text-xs px-3 py-1 rounded-xl font-mono font-bold bg-emerald-950/80 text-emerald-500 border border-emerald-800/80 whitespace-nowrap shadow-sm`;
+                } else {
+                    statusEl.className = `text-xs px-3 py-1 rounded-xl font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 whitespace-nowrap shadow-sm`;
+                }
             }
         }
 
@@ -1168,8 +1185,9 @@
                 }
             });
 
-            updateSoporteBadge('header-soporte-thisweek', 'header-soporte-thisweek-status', thisWeekFamilies);
-            updateSoporteBadge('header-soporte-nextweek', 'header-soporte-nextweek-status', nextWeekFamilies);
+            // ACTUALIZACIÓN DE LOS MONITORES DE SOPORTE (ESTA SEMANA = VERDE BRILLANTE, PRÓXIMA SEMANA = VERDE OSCURO)
+            updateSoporteBadge('header-soporte-thisweek', 'header-soporte-thisweek-status', thisWeekFamilies, false);
+            updateSoporteBadge('header-soporte-nextweek', 'header-soporte-nextweek-status', nextWeekFamilies, true);
 
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
