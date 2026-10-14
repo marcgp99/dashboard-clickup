@@ -147,38 +147,31 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.8 LEAN</span>
+                        PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v3.9 LEAN</span>
                     </h1>
                 </div>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            <!-- MONITOR 1: CAPACIDAD SEMANAL (600 UDS) -->
-            <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
-                <div class="flex items-center gap-2 text-emerald-400 font-semibold">
-                    <i class="fa-solid fa-truck-ramp-box text-sm animate-pulse"></i>
-                    <span>Capacidad Semanal:</span>
-                    <strong id="header-output-week" class="text-white text-base font-mono font-bold">0</strong>
-                    <span class="text-slate-500">/ 600 uds</span>
+            <!-- MONITOR 1: SOPORTE EXTRA ESTA SEMANA (L-V) -->
+            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
+                <div class="flex items-center gap-1.5 text-cyan-400 font-semibold">
+                    <i class="fa-solid fa-calendar-day text-xs"></i>
+                    <span class="whitespace-nowrap">Soporte (Esta Sem L-V):</span>
+                    <strong id="header-soporte-thisweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
                 </div>
-                <div class="w-16 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
-                    <div id="header-progress-bar" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <span id="header-output-var" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0%</span>
+                <span id="header-soporte-thisweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">Disponible</span>
             </div>
 
-            <!-- MONITOR 2: SOPORTE EXTRA -->
-            <div class="flex items-center gap-3 bg-slate-900/90 border border-slate-800 px-4 py-2 rounded-xl text-xs shadow-inner">
-                <div class="flex items-center gap-2 text-cyan-400 font-semibold">
-                    <i class="fa-solid fa-headset text-sm"></i>
-                    <span>Soporte Extra:</span>
-                    <strong id="header-soporte-units" class="text-white text-xs font-mono font-bold">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
+            <!-- MONITOR 2: SOPORTE EXTRA PRÓXIMA SEMANA (L-V) -->
+            <div class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs shadow-inner">
+                <div class="flex items-center gap-1.5 text-blue-400 font-semibold">
+                    <i class="fa-solid fa-calendar-plus text-xs"></i>
+                    <span class="whitespace-nowrap">Soporte (Próx Sem L-V):</span>
+                    <strong id="header-soporte-nextweek" class="text-white text-[11px] font-mono font-bold whitespace-nowrap">Ixo: 0/50 | Pro: 0/300 | Cow: 0/1000</strong>
                 </div>
-                <div class="w-16 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/50">
-                    <div id="header-soporte-bar" class="bg-cyan-500 h-full transition-all duration-500" style="width: 0%"></div>
-                </div>
-                <span id="header-soporte-status" class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Disponible</span>
+                <span id="header-soporte-nextweek-status" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">Disponible</span>
             </div>
 
             <!-- RELOJ SINCRO -->
@@ -257,7 +250,7 @@
                 </div>
             </div>
 
-            <!-- Incidencias GW (Reemplazados) -->
+            <!-- Incidencias GW -->
             <div onclick="openModal('Incidencias GW', window.allTasks.filter(t => t.modeloInfo.nombre === 'Gateway' && isTaskCompleted(t)))" class="bi-kpi-card rounded-2xl p-5 relative group glow-orange">
                 <p class="text-orange-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Incidencias GW</span>
@@ -281,7 +274,7 @@
                 </div>
             </div>
 
-            <!-- NUEVO KPI: Pendientes por Recibir (Bloqueados) -->
+            <!-- KPI: Pendientes por Recibir (Bloqueados) -->
             <div onclick="openModal('Pendientes por Recibir (Bloqueados)', window.allTasks.filter(t => t.esSoloRecibir && t.estado.includes('BLOQUEAD')))" class="bi-kpi-card rounded-2xl p-5 relative group glow-purple">
                 <p class="text-purple-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between">
                     <span>Pendiente Recibir</span>
@@ -319,7 +312,10 @@
 
             <div class="bi-panel p-5 flex flex-col justify-between min-h-[260px]">
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i class="fa-solid fa-truck-ramp-box"></i> Capacidad Semanal</span>
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-truck-ramp-box"></i> Envíos Semanales 
+                        <span class="text-[10px] text-slate-500 font-normal font-mono">(Meta: 600 uds/sem)</span>
+                    </span>
                     <span class="text-[10px] text-slate-500 font-normal font-mono">Clic para explorar</span>
                 </h3>
                 <div class="w-full h-44 relative"><canvas id="chartRendimiento"></canvas></div>
@@ -409,7 +405,7 @@
         </section>
     </main>
 
-    <!-- MODAL EMERGENTE CON FICHAS INTERACTIVAS DE CLIENTES -->
+    <!-- MODAL EMERGENTE -->
     <div id="detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
         <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeModal()"></div>
         
@@ -487,17 +483,16 @@
         const CAPACIDAD_PRO_SERIES = 300; // Ixotrack pro + IxotrackproM10 + IxotrackproM10LR
         const CAPACIDAD_COWPRO = 1000;
 
-        // MAPA DE COLORES DINÁMICO POR NOMBRE DE MODELO (Asegura sincronización exacta)
         function getModelColorHex(modelName) {
             const map = {
-                'Ixotrack': '#10b981',         // Esmeralda / Verde
-                'Ixotrack pro': '#3b82f6',     // Azul Claro
-                'IxotrackproM10': '#1d4ed8',   // Azul Oscuro
-                'IxotrackproM10LR': '#8b5cf6', // Morado
-                'Cowpro v2': '#ef4444',        // Rojo
-                'Gateway': '#f97316',          // Naranja
-                'Correas / Contrapesos': '#06b6d4', // Cyan
-                'Otro': '#64748b'              // Gris
+                'Ixotrack': '#10b981',         
+                'Ixotrack pro': '#3b82f6',     
+                'IxotrackproM10': '#1d4ed8',   
+                'IxotrackproM10LR': '#8b5cf6', 
+                'Cowpro v2': '#ef4444',        
+                'Gateway': '#f97316',          
+                'Correas / Contrapesos': '#06b6d4', 
+                'Otro': '#64748b'              
             };
             return map[modelName] || '#64748b';
         }
@@ -544,7 +539,6 @@
             return false;
         }
 
-        // COLORES DE ETIQUETAS
         function getTagColorHex(tag) {
             const t = tag.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             if (t.includes("REEMPLAZO")) return '#f59e0b';
@@ -566,7 +560,6 @@
             return `<span class="inline-block bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-md text-[10px] font-bold mr-1 mt-1">${tag}</span>`;
         }
 
-        // PRIORIDAD EXCLUSIVA DESDE CLICKUP
         function getPriorityHtml(task) {
             if (task.prioridadNum === 1 || task.prioridadLevel === 'urgent') {
                 return '<span class="px-2.5 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-fire"></i>Urgente</span>';
@@ -580,7 +573,6 @@
             return '<span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1"><i class="fa-solid fa-minus"></i>Normal</span>';
         }
 
-        // EXTRACCIÓN DE NOMBRE DE CLIENTE
         function parseClienteName(taskName) {
             if (!taskName) return "Cliente General";
             const n = taskName.trim();
@@ -599,7 +591,6 @@
             return "Cliente General";
         }
 
-        // PARSER ESPECÍFICO Y PRECISO PARA KITS SOLARES, ANTENAS Y GATEWAYS
         function parseKitsSolaresGW(taskName, description) {
             const text = ((taskName || '') + ' ' + (description || '')).trim();
             if (!text) return { found: false, qty: 0, tipo: '' };
@@ -634,7 +625,6 @@
             return { found: false, qty: 0, tipo: '' };
         }
 
-        // DETECCIÓN DE MODELOS DE DISPOSITIVOS
         function parseModelo(taskName) {
             if (!taskName) return { nombre: 'Otro', color: 'slate', hex: '#64748b' };
             const n = taskName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -675,7 +665,6 @@
                    p.includes('correa') || p.includes('contrapeso');
         }
 
-        // DESGLOSE INTERNO DE MODELOS
         function parseTaskModels(taskName) {
             if (!taskName) return [{ text: '', unidades: 1, modeloInfo: parseModelo(''), esAccesorio: false }];
             
@@ -725,6 +714,27 @@
                     esAccesorio: isAccesorio
                 }];
             }
+        }
+
+        // MOTOR DE FECHAS: RANGOS SEMANALES EXACTOS (LUNES A VIERNES)
+        function getCalendarWorkWeeks() {
+            const now = new Date();
+            const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay(); 
+            
+            // Lunes de la semana en curso (00:00:00)
+            const thisMon = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dayOfWeek - 1), 0, 0, 0, 0);
+            // Viernes de la semana en curso (23:59:59)
+            const thisFri = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() + 4, 23, 59, 59, 999);
+            
+            // Lunes de la próxima semana (00:00:00)
+            const nextMon = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() + 7, 0, 0, 0, 0);
+            // Viernes de la próxima semana (23:59:59)
+            const nextFri = new Date(nextMon.getFullYear(), nextMon.getMonth(), nextMon.getDate() + 4, 23, 59, 59, 999);
+            
+            return {
+                thisWeek: { start: thisMon.getTime(), end: thisFri.getTime() },
+                nextWeek: { start: nextMon.getTime(), end: nextFri.getTime() }
+            };
         }
 
         function getEndOfBusinessDays(startDate, days) {
@@ -1027,6 +1037,32 @@
             });
         }
 
+        // EVALUADOR Y ACTUALIZADOR DE MONITORES DE SOPORTE EXTRA
+        function updateSoporteBadge(elementTextId, elementStatusId, data) {
+            document.getElementById(elementTextId).innerText = `Ixo: ${data.ixo}/${CAPACIDAD_IXOTRACK} | Pro: ${data.pro}/${CAPACIDAD_PRO_SERIES} | Cow: ${data.cow}/${CAPACIDAD_COWPRO}`;
+
+            const statusEl = document.getElementById(elementStatusId);
+            const pctIxo = (data.ixo / CAPACIDAD_IXOTRACK) * 100;
+            const pctPro = (data.pro / CAPACIDAD_PRO_SERIES) * 100;
+            const pctCow = (data.cow / CAPACIDAD_COWPRO) * 100;
+
+            if (data.ixo >= CAPACIDAD_IXOTRACK || data.pro >= CAPACIDAD_PRO_SERIES || data.cow >= CAPACIDAD_COWPRO) {
+                let saturated = [];
+                if (data.ixo >= CAPACIDAD_IXOTRACK) saturated.push('Ixotrack');
+                if (data.pro >= CAPACIDAD_PRO_SERIES) saturated.push('Pro');
+                if (data.cow >= CAPACIDAD_COWPRO) saturated.push('Cowpro v2');
+
+                statusEl.innerText = `Cupo Lleno (${saturated.join(', ')})`;
+                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse whitespace-nowrap`;
+            } else if (pctIxo >= 80 || pctPro >= 80 || pctCow >= 80) {
+                statusEl.innerText = "Cerca del Límite";
+                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 whitespace-nowrap`;
+            } else {
+                statusEl.innerText = "Disponible";
+                statusEl.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap`;
+            }
+        }
+
         function updateDashboard() {
             let totalSemana = 0;
             let totalHoy = 0;
@@ -1047,6 +1083,10 @@
 
             window.weekTasksMap = { w0: [], w1: [], w2: [], w3: [] };
             let outputW0 = 0, outputW1 = 0, outputW2 = 0, outputW3 = 0;
+
+            const workWeeks = getCalendarWorkWeeks();
+            let thisWeekFamilies = { ixo: 0, pro: 0, cow: 0 };
+            let nextWeekFamilies = { ixo: 0, pro: 0, cow: 0 };
 
             window.allTasks.forEach(t => {
                 const completed = isTaskCompleted(t);
@@ -1077,16 +1117,34 @@
                     totalPendientesRecibir += t.unidadesBrutas;
                 }
 
-                // Trabajo de Dispositivos Principales
+                // Trabajo de Dispositivos Principales y Segmentación de Semanas L-V para Soporte
                 if (!t.esSoloRecibir && !t.esAccesorio && !completed) {
                     if (t.dateInfo.isWithinWindow) totalSemana += t.unidades;
                     if (t.dateInfo.isTodayOrOverdue) totalHoy += t.unidades;
 
+                    const ts = t.timestamp;
+                    const isThisW = (ts <= workWeeks.thisWeek.end);
+                    const isNextW = (ts > workWeeks.thisWeek.end && ts <= workWeeks.nextWeek.end);
+
                     t.modelosDesglose.forEach(m => {
+                        const name = m.modeloInfo.nombre;
+                        const units = m.unidades;
+
                         if (t.dateInfo.isWithinWindow) {
-                            if (statsModelos[m.modeloInfo.nombre] !== undefined) {
-                                statsModelos[m.modeloInfo.nombre] += m.unidades;
+                            if (statsModelos[name] !== undefined) {
+                                statsModelos[name] += units;
                             }
+                        }
+
+                        // Acumulado exacto por familias para los dos monitores L-V
+                        if (isThisW) {
+                            if (name === 'Ixotrack') thisWeekFamilies.ixo += units;
+                            else if (name === 'Ixotrack pro' || name === 'IxotrackproM10' || name === 'IxotrackproM10LR') thisWeekFamilies.pro += units;
+                            else if (name === 'Cowpro v2') thisWeekFamilies.cow += units;
+                        } else if (isNextW) {
+                            if (name === 'Ixotrack') nextWeekFamilies.ixo += units;
+                            else if (name === 'Ixotrack pro' || name === 'IxotrackproM10' || name === 'IxotrackproM10LR') nextWeekFamilies.pro += units;
+                            else if (name === 'Cowpro v2') nextWeekFamilies.cow += units;
                         }
                     });
 
@@ -1120,61 +1178,9 @@
                 }
             });
 
-            // 1. MONITOR CAPACIDAD SEMANAL
-            document.getElementById('header-output-week').innerText = outputW0;
-            const pctCapacidad = Math.min(Math.round((outputW0 / CAPACIDAD_OBJETIVO_SEMANAL) * 100), 100);
-            const progressBar = document.getElementById('header-progress-bar');
-            if (progressBar) progressBar.style.width = `${pctCapacidad}%`;
-
-            const badgeVar = document.getElementById('header-output-var');
-            badgeVar.innerText = `${pctCapacidad}% del Obj. (600 uds)`;
-            if (pctCapacidad >= 70) {
-                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`;
-                if (progressBar) progressBar.className = "bg-emerald-500 h-full transition-all duration-500";
-            } else if (pctCapacidad >= 40) {
-                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30`;
-                if (progressBar) progressBar.className = "bg-amber-500 h-full transition-all duration-500";
-            } else {
-                badgeVar.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30`;
-                if (progressBar) progressBar.className = "bg-red-500 h-full transition-all duration-500";
-            }
-
-            // 2. MONITOR SOPORTE EXTRA (LÍMITE INDIVIDUAL)
-            const unitsIxo = statsModelos['Ixotrack'] || 0;
-            const unitsPro = (statsModelos['Ixotrack pro'] || 0) + (statsModelos['IxotrackproM10'] || 0) + (statsModelos['IxotrackproM10LR'] || 0);
-            const unitsCowpro = statsModelos['Cowpro v2'] || 0;
-
-            const pctIxo = Math.round((unitsIxo / CAPACIDAD_IXOTRACK) * 100);
-            const pctPro = Math.round((unitsPro / CAPACIDAD_PRO_SERIES) * 100);
-            const pctCowpro = Math.round((unitsCowpro / CAPACIDAD_COWPRO) * 100);
-
-            const maxPctFamily = Math.max(pctIxo, pctPro, pctCowpro);
-
-            document.getElementById('header-soporte-units').innerText = `Ixo: ${unitsIxo}/${CAPACIDAD_IXOTRACK} | Pro: ${unitsPro}/${CAPACIDAD_PRO_SERIES} | Cow: ${unitsCowpro}/${CAPACIDAD_COWPRO}`;
-
-            const soporteBar = document.getElementById('header-soporte-bar');
-            if (soporteBar) soporteBar.style.width = `${Math.min(maxPctFamily, 100)}%`;
-
-            const soporteStatus = document.getElementById('header-soporte-status');
-            
-            if (unitsIxo >= CAPACIDAD_IXOTRACK || unitsPro >= CAPACIDAD_PRO_SERIES || unitsCowpro >= CAPACIDAD_COWPRO) {
-                let saturated = [];
-                if (unitsIxo >= CAPACIDAD_IXOTRACK) saturated.push('Ixotrack');
-                if (unitsPro >= CAPACIDAD_PRO_SERIES) saturated.push('Pro');
-                if (unitsCowpro >= CAPACIDAD_COWPRO) saturated.push('Cowpro v2');
-
-                soporteStatus.innerText = `Cupo Lleno (${saturated.join(', ')})`;
-                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse`;
-                if (soporteBar) soporteBar.className = "bg-red-500 h-full transition-all duration-500";
-            } else if (pctIxo >= 80 || pctPro >= 80 || pctCowpro >= 80) {
-                soporteStatus.innerText = "Cerca del Límite";
-                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30`;
-                if (soporteBar) soporteBar.className = "bg-amber-500 h-full transition-all duration-500";
-            } else {
-                soporteStatus.innerText = "Disponible";
-                soporteStatus.className = `text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30`;
-                if (soporteBar) soporteBar.className = "bg-cyan-500 h-full transition-all duration-500";
-            }
+            // ACTUALIZACIÓN DE LOS DOS MONITORES DE SOPORTE EXTRA (L-V)
+            updateSoporteBadge('header-soporte-thisweek', 'header-soporte-thisweek-status', thisWeekFamilies);
+            updateSoporteBadge('header-soporte-nextweek', 'header-soporte-nextweek-status', nextWeekFamilies);
 
             document.getElementById('kpi-semana').innerText = totalSemana;
             document.getElementById('kpi-hoy').innerText = totalHoy;
