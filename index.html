@@ -70,7 +70,7 @@
                 <i class="fa-solid fa-chart-pie text-2xl"></i>
             </div>
             <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v4.4 LEAN</span>
+                PANEL DE PRODUCCIÓN <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">v4.5 LEAN</span>
             </h1>
         </div>
 
@@ -156,7 +156,7 @@
                 <div class="flex justify-between items-baseline"><h2 id="kpi-gw" class="text-3xl font-extrabold text-orange-400 font-mono">0</h2><span class="text-xs text-orange-500/80 font-medium">listos</span></div>
             </div>
 
-            <!-- Correas / Contrapesos (Limpio) -->
+            <!-- Correas / Contrapesos -->
             <div onclick="openModal('Reemplazos de Correas y Contrapesos', window.allTasks.filter(t => t.esAccesorio), false, false, true)" class="bi-kpi-card rounded-2xl p-5 glow-cyan">
                 <p class="text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center justify-between"><span>Correas / Contrapesos</span><i class="fa-solid fa-weight-hanging text-cyan-400"></i></p>
                 <div class="flex justify-between items-baseline"><h2 id="kpi-accesorios" class="text-3xl font-extrabold text-cyan-400 font-mono">0</h2><span class="text-xs text-cyan-500/80 font-medium">unidades</span></div>
@@ -282,7 +282,7 @@
                 <div id="modal-summary-models-list" class="flex flex-wrap gap-2.5"></div>
             </div>
 
-            <!-- RECOMENDACIÓN LEAN -->
+            <!-- RECOMENDACIÓN LEAN CON SECCIÓN INTERACTIVA DE FABRICAR HOY POR LOTE -->
             <div id="modal-recommendation-box" class="hidden bg-amber-500/10 border-b border-amber-500/30 p-5">
                 <h4 class="text-amber-400 font-bold mb-3 flex items-center gap-2 text-sm uppercase tracking-wide"><i class="fa-solid fa-bolt"></i> Oportunidades de Producción en Serie</h4>
                 <div id="modal-recommendation-list" class="space-y-3"></div>
@@ -673,6 +673,21 @@
             renderMainTable();
         }
 
+        // DESPLIEGUE INTERACTIVO DEL CUADRO DE DISPOSITIVOS A FABRICAR HOY POR LOTE
+        window.toggleTodayBatchBox = function(safeId) {
+            const box = document.getElementById(`today-box-${safeId}`);
+            const chevron = document.getElementById(`chevron-${safeId}`);
+            if (box) {
+                if (box.classList.contains('hidden')) {
+                    box.classList.remove('hidden');
+                    if (chevron) chevron.classList.add('rotate-180');
+                } else {
+                    box.classList.add('hidden');
+                    if (chevron) chevron.classList.remove('rotate-180');
+                }
+            }
+        };
+
         function checkBatchingRecommendations() {
             let modelsData = {};
             window.allTasks.forEach(task => {
@@ -685,9 +700,18 @@
                     const modelHex = m.modeloInfo.hex;
                     if (model === 'Otro' || model === 'Gateway' || model === 'Correas' || model === 'Contrapesos') return;
 
-                    if (!modelsData[model]) modelsData[model] = { todayUnits: 0, futureUnits: 0, futureTickets: [], hex: modelHex };
-                    if (task.dateInfo.isTodayOrOverdue) modelsData[model].todayUnits += m.unidades;
-                    else if (task.dateInfo.isFutureRolling) {
+                    if (!modelsData[model]) {
+                        modelsData[model] = { todayUnits: 0, futureUnits: 0, todayTickets: [], futureTickets: [], hex: modelHex };
+                    }
+
+                    if (task.dateInfo.isTodayOrOverdue) {
+                        modelsData[model].todayUnits += m.unidades;
+                        modelsData[model].todayTickets.push({
+                            nombre: task.nombre,
+                            cliente: task.cliente,
+                            unidades: m.unidades
+                        });
+                    } else if (task.dateInfo.isFutureRolling) {
                         modelsData[model].futureUnits += m.unidades;
                         modelsData[model].futureTickets.push(`${task.nombre} (${m.unidades} uds)`);
                     }
@@ -698,14 +722,49 @@
             for (const [model, data] of Object.entries(modelsData)) {
                 if (data.futureUnits > 0) {
                     const batchTotal = data.todayUnits + data.futureUnits;
+                    const safeId = model.replace(/[^a-zA-Z0-9]/g, '_');
+
+                    const todayTicketsHtml = data.todayTickets.length > 0
+                        ? data.todayTickets.map(t => `
+                            <span class="bg-slate-900 border border-amber-500/50 text-amber-200 px-2.5 py-1.5 rounded-lg text-[11px] font-mono flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-stopwatch text-amber-400"></i> ${t.nombre} 
+                                <strong class="text-white bg-amber-500/25 px-1.5 py-0.5 rounded border border-amber-500/40 font-bold">${t.unidades} uds</strong>
+                            </span>`).join('')
+                        : '<span class="text-xs text-slate-400 italic">No hay tiquets con vencimiento hoy para este modelo.</span>';
+
                     const ticketsHtml = data.futureTickets.map(t => `<span class="bg-slate-900 border border-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-mono"><i class="fa-solid fa-ticket text-slate-500"></i> ${t}</span>`).join('');
+
                     suggestions.push(`
                         <div class="bg-slate-900/80 p-4 rounded-xl border border-amber-500/30 mb-3 shadow-inner">
                             <div class="flex items-center gap-3 mb-2 flex-wrap">
-                                <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase text-white" style="background-color: ${data.hex}">Lote: ${model}</span>
-                                <span class="text-slate-200 text-sm">Hoy: <strong>${data.todayUnits}</strong> + Adelantar (7 días): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base font-mono ml-1">Lote de ${batchTotal} uds</strong></span>
+                                <!-- BOTÓN INTERACTIVO DEL RECUADRO DE LOTE -->
+                                <button type="button" onclick="toggleTodayBatchBox('${safeId}')" class="px-2.5 py-1.5 rounded-md text-xs font-bold uppercase text-white hover:ring-2 hover:ring-amber-400/80 active:scale-95 transition cursor-pointer flex items-center gap-2 shadow-md" style="background-color: ${data.hex}" title="Haz clic para ver/ocultar los dispositivos a fabricar hoy">
+                                    <span>Lote: ${model}</span>
+                                    <span class="text-[10px] bg-black/40 px-1.5 py-0.5 rounded font-mono font-normal flex items-center gap-1">
+                                        <i class="fa-solid fa-bolt text-amber-300"></i> Ver Hoy (${data.todayUnits}) <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-200" id="chevron-${safeId}"></i>
+                                    </span>
+                                </button>
+                                <span class="text-slate-200 text-sm">
+                                    <span class="cursor-pointer underline decoration-amber-400/60 hover:text-amber-300 font-medium" onclick="toggleTodayBatchBox('${safeId}')" title="Clic para ver desglose de hoy">Hoy: <strong class="text-amber-400 font-mono">${data.todayUnits}</strong></span> + Adelantar (7 días): <strong>${data.futureUnits}</strong> = <strong class="text-amber-400 text-base font-mono ml-1">Lote de ${batchTotal} uds</strong>
+                                </span>
                             </div>
-                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-800 pt-2"><i class="fa-solid fa-boxes-stacked mr-1 text-slate-500"></i> Unidades sugeridas para completar lote en serie:</p>
+
+                            <!-- CUADRO INTERACTIVO DE DISPOSITIVOS A FABRICAR HOY -->
+                            <div id="today-box-${safeId}" class="hidden mt-3 mb-3 p-3.5 bg-amber-950/40 border-2 border-amber-500/50 rounded-xl transition-all shadow-inner">
+                                <div class="flex items-center justify-between mb-2.5 pb-1.5 border-b border-amber-500/20">
+                                    <span class="text-xs font-bold text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                                        <i class="fa-solid fa-stopwatch text-amber-400"></i> Dispositivos / Tiquets a Fabricar HOY - ${model} (${data.todayUnits} uds)
+                                    </span>
+                                    <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-mono font-bold">
+                                        Prioridad Hoy
+                                    </span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    ${todayTicketsHtml}
+                                </div>
+                            </div>
+
+                            <p class="text-[12px] text-slate-400 mb-2 mt-2 border-t border-slate-800 pt-2"><i class="fa-solid fa-boxes-stacked mr-1 text-slate-500"></i> Unidades sugeridas para completar lote en serie (adelantar 7 días):</p>
                             <div class="flex flex-wrap gap-2 mt-1">${ticketsHtml}</div>
                         </div>
                     `);
